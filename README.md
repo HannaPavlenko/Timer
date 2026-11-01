@@ -4,9 +4,9 @@ A cross-platform timer application built with Avalonia UI for Windows and Androi
 
 ## Project status
 
-The shared Avalonia application and both platform entry points build successfully. The current screen is the starter view. Timer modes and the finished interface are planned for the next development steps.
+The shared Avalonia application and both platform entry points build successfully. The timer modes are implemented in the shared core and covered by automated tests. The current screen is still the starter view; the finished interface is the next development step.
 
-Planned modes:
+Implemented timer modes:
 
 - Stopwatch
 - Count up to a target duration and countdown from a target duration
@@ -28,6 +28,7 @@ Install the .NET 10 SDK. To build the Android project, also install the .NET And
 ```powershell
 dotnet restore Timer.sln
 dotnet build Timer.sln -c Debug
+dotnet test Timer.Core.Tests/Timer.Core.Tests.csproj -c Debug
 dotnet run --project Timer.Desktop
 ```
 
@@ -44,6 +45,8 @@ To run on Android, select the `Timer.Android` project and a connected device or 
 | Path | Purpose |
 | --- | --- |
 | `Timer/` | Shared Avalonia UI and view models |
+| `Timer.Core/` | Platform-independent timer engine |
+| `Timer.Core.Tests/` | Deterministic timer tests |
 | `Timer.Desktop/` | Windows desktop entry point |
 | `Timer.Android/` | Android entry point and resources |
 

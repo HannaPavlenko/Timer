@@ -16,4 +16,7 @@
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Timer.Core\Timer.Core.csproj" />
+  </ItemGroup>
 </Project>
