@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timer.Core", "Timer.Core\Ti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timer.Core.Tests", "Timer.Core.Tests\Timer.Core.Tests.csproj", "{9DB1D61E-0FE4-4E37-9853-D50A20B9375E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timer.App.Tests", "Timer.App.Tests\Timer.App.Tests.csproj", "{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,18 @@ Global
 		{9DB1D61E-0FE4-4E37-9853-D50A20B9375E}.Release|x64.Build.0 = Release|Any CPU
 		{9DB1D61E-0FE4-4E37-9853-D50A20B9375E}.Release|x86.ActiveCfg = Release|Any CPU
 		{9DB1D61E-0FE4-4E37-9853-D50A20B9375E}.Release|x86.Build.0 = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|x64.Build.0 = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|x64.ActiveCfg = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|x64.Build.0 = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{0EDE0DD8-AFEC-4187-A12B-71120AF670BE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

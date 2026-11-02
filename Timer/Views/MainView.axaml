@@ -27,6 +27,7 @@
       <Setter Property="FontSize" Value="13" />
     </Style>
     <Style Selector="Button.mode">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Background" Value="#F6F2EA" />
       <Setter Property="Foreground" Value="#625F57" />
       <Setter Property="BorderBrush" Value="#E8E0D4" />
@@ -43,6 +44,7 @@
       <Setter Property="BorderBrush" Value="#B96B50" />
     </Style>
     <Style Selector="Button.action">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Background" Value="#B96B50" />
       <Setter Property="Foreground" Value="#FFFDF9" />
       <Setter Property="BorderThickness" Value="0" />
@@ -56,6 +58,7 @@
       <Setter Property="Background" Value="#A85D44" />
     </Style>
     <Style Selector="Button.secondary">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Background" Value="#F5F0E7" />
       <Setter Property="Foreground" Value="#524F47" />
       <Setter Property="BorderBrush" Value="#E8E0D4" />

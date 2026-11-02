@@ -5,7 +5,7 @@ using Avalonia.Android;
 namespace Timer.Android;
 
 [Activity(
-    Label = "Timer",
+    Label = "Stilltime",
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
