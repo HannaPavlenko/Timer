@@ -21,9 +21,18 @@ public partial class MainViewModel : ViewModelBase
         SelectMode(TimerMode.Stopwatch);
     }
 
-    public bool IsStopwatchSelected => _selectedMode == TimerMode.Stopwatch;
-    public bool IsCountUpSelected => _selectedMode == TimerMode.CountUp;
-    public bool IsCountdownSelected => _selectedMode == TimerMode.Countdown;
+    public int SelectedModeIndex
+    {
+        get => (int)_selectedMode;
+        set
+        {
+            if (value is < 0 or > 3 || value == (int)_selectedMode)
+                return;
+
+            SelectMode((TimerMode)value);
+        }
+    }
+
     public bool IsIntervalsSelected => _selectedMode == TimerMode.Intervals;
     public bool IsDurationMode => _selectedMode is TimerMode.CountUp or TimerMode.Countdown;
     public bool CanEditSettings => _status is TimerStatus.Ready or TimerStatus.Completed;
@@ -121,9 +130,7 @@ public partial class MainViewModel : ViewModelBase
             _ => string.Empty
         };
 
-        OnPropertyChanged(nameof(IsStopwatchSelected));
-        OnPropertyChanged(nameof(IsCountUpSelected));
-        OnPropertyChanged(nameof(IsCountdownSelected));
+        OnPropertyChanged(nameof(SelectedModeIndex));
         OnPropertyChanged(nameof(IsIntervalsSelected));
         OnPropertyChanged(nameof(IsDurationMode));
         OnPropertyChanged(nameof(CanEditSettings));

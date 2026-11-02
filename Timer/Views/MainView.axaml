@@ -26,22 +26,21 @@
       <Setter Property="Foreground" Value="#77736B" />
       <Setter Property="FontSize" Value="13" />
     </Style>
-    <Style Selector="Button.mode">
+    <Style Selector="TabStripItem.modeTab">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
-      <Setter Property="Background" Value="#F6F2EA" />
+      <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="#625F57" />
-      <Setter Property="BorderBrush" Value="#E8E0D4" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="12" />
-      <Setter Property="Padding" Value="14,13" />
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="5,12" />
+      <Setter Property="FontSize" Value="12" />
       <Setter Property="FontWeight" Value="Medium" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="Button.mode.selected">
+    <Style Selector="TabStripItem.modeTab:selected">
       <Setter Property="Background" Value="#B96B50" />
       <Setter Property="Foreground" Value="#FFFDF9" />
-      <Setter Property="BorderBrush" Value="#B96B50" />
+      <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Button.action">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -87,21 +86,19 @@
     <Grid MaxWidth="640" HorizontalAlignment="Stretch" Margin="22,24,22,32">
       <StackPanel Spacing="18">
         <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
-                CornerRadius="20" Padding="18">
-          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-              <Button Grid.Row="0" Grid.Column="0" Classes="mode" Margin="0,0,5,5"
-                      Classes.selected="{Binding IsStopwatchSelected}"
-                      Command="{Binding SelectStopwatchCommand}" Content="Stopwatch" />
-              <Button Grid.Row="0" Grid.Column="1" Classes="mode" Margin="5,0,0,5"
-                      Classes.selected="{Binding IsCountUpSelected}"
-                      Command="{Binding SelectCountUpCommand}" Content="Count up" />
-              <Button Grid.Row="1" Grid.Column="0" Classes="mode" Margin="0,5,5,0"
-                      Classes.selected="{Binding IsCountdownSelected}"
-                      Command="{Binding SelectCountdownCommand}" Content="Countdown" />
-              <Button Grid.Row="1" Grid.Column="1" Classes="mode" Margin="5,5,0,0"
-                      Classes.selected="{Binding IsIntervalsSelected}"
-                      Command="{Binding SelectIntervalsCommand}" Content="Intervals" />
-          </Grid>
+                CornerRadius="16" Padding="6">
+          <TabStrip SelectedIndex="{Binding SelectedModeIndex, Mode=TwoWay}"
+                    HorizontalAlignment="Stretch">
+            <TabStrip.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="4" />
+              </ItemsPanelTemplate>
+            </TabStrip.ItemsPanel>
+            <TabStripItem Classes="modeTab">Stopwatch</TabStripItem>
+            <TabStripItem Classes="modeTab">Count up</TabStripItem>
+            <TabStripItem Classes="modeTab">Countdown</TabStripItem>
+            <TabStripItem Classes="modeTab">Intervals</TabStripItem>
+          </TabStrip>
         </Border>
 
         <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"

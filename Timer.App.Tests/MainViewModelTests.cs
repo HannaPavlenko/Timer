@@ -57,11 +57,16 @@ public sealed class MainViewModelTests
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
 
-        viewModel.SelectIntervalsCommand.Execute(null);
+        viewModel.SelectedModeIndex = 3;
         Assert.IsTrue(viewModel.IsIntervalsSelected);
+        Assert.AreEqual(3, viewModel.SelectedModeIndex);
         Assert.AreEqual("READY", viewModel.StatusLabel);
         Assert.AreEqual("00:45", viewModel.DisplayTime);
         Assert.AreEqual("Round 1 of 4  ·  work", viewModel.DetailLabel);
         Assert.IsTrue(viewModel.CanEditSettings);
+
+        viewModel.SelectCountdownCommand.Execute(null);
+        Assert.AreEqual(2, viewModel.SelectedModeIndex);
+        Assert.IsTrue(viewModel.IsDurationMode);
     }
 }
