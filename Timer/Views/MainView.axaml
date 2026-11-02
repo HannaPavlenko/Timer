@@ -42,6 +42,9 @@
       <Setter Property="Foreground" Value="#FFFDF9" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <Style Selector="TabStripItem.modeTab:selected /template/ Border#PART_SelectedPipe">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
     <Style Selector="Button.action">
       <Setter Property="HorizontalAlignment" Value="Stretch" />
       <Setter Property="Background" Value="#B96B50" />
