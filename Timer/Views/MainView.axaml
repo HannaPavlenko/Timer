@@ -86,23 +86,9 @@
                 VerticalScrollBarVisibility="Auto">
     <Grid MaxWidth="640" HorizontalAlignment="Stretch" Margin="22,24,22,32">
       <StackPanel Spacing="18">
-        <StackPanel Spacing="6" Margin="2,0,2,4">
-          <TextBlock Classes="kicker" Text="STILLTIME  /  A MOMENT FOR WHAT MATTERS" />
-          <TextBlock Text="Make time your own."
-                     FontSize="30" FontWeight="SemiBold" Foreground="#292D28"
-                     TextWrapping="Wrap" />
-          <TextBlock Classes="muted" Text="A simple space to focus, pause, and begin again."
-                     TextWrapping="Wrap" />
-        </StackPanel>
-
         <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
                 CornerRadius="20" Padding="18">
-          <StackPanel Spacing="14">
-            <StackPanel Spacing="3">
-              <TextBlock Classes="kicker" Text="01  CHOOSE YOUR MODE" />
-              <TextBlock Classes="heading" Text="How would you like to count?" TextWrapping="Wrap" />
-            </StackPanel>
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
               <Button Grid.Row="0" Grid.Column="0" Classes="mode" Margin="0,0,5,5"
                       Classes.selected="{Binding IsStopwatchSelected}"
                       Command="{Binding SelectStopwatchCommand}" Content="Stopwatch" />
@@ -115,8 +101,7 @@
               <Button Grid.Row="1" Grid.Column="1" Classes="mode" Margin="5,5,0,0"
                       Classes.selected="{Binding IsIntervalsSelected}"
                       Command="{Binding SelectIntervalsCommand}" Content="Intervals" />
-            </Grid>
-          </StackPanel>
+          </Grid>
         </Border>
 
         <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
