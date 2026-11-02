@@ -2,15 +2,231 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:Timer.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:Timer.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="520" d:DesignHeight="820"
              x:Class="Timer.Views.MainView"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <UserControl.Styles>
+    <Style Selector="TextBlock.kicker">
+      <Setter Property="Foreground" Value="#A25E49" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="Foreground" Value="#292D28" />
+      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="#77736B" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.mode">
+      <Setter Property="Background" Value="#F6F2EA" />
+      <Setter Property="Foreground" Value="#625F57" />
+      <Setter Property="BorderBrush" Value="#E8E0D4" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="14,13" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.mode.selected">
+      <Setter Property="Background" Value="#B96B50" />
+      <Setter Property="Foreground" Value="#FFFDF9" />
+      <Setter Property="BorderBrush" Value="#B96B50" />
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="Background" Value="#B96B50" />
+      <Setter Property="Foreground" Value="#FFFDF9" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Padding" Value="20,17" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.action:pointerover">
+      <Setter Property="Background" Value="#A85D44" />
+    </Style>
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="#F5F0E7" />
+      <Setter Property="Foreground" Value="#524F47" />
+      <Setter Property="BorderBrush" Value="#E8E0D4" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Padding" Value="20,17" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.timeInput">
+      <Setter Property="Background" Value="#FFFCF7" />
+      <Setter Property="Foreground" Value="#292D28" />
+      <Setter Property="BorderBrush" Value="#DED5C8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="FontSize" Value="18" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer Background="#F3EFE8"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+    <Grid MaxWidth="640" HorizontalAlignment="Stretch" Margin="22,24,22,32">
+      <StackPanel Spacing="18">
+        <StackPanel Spacing="6" Margin="2,0,2,4">
+          <TextBlock Classes="kicker" Text="STILLTIME  /  A MOMENT FOR WHAT MATTERS" />
+          <TextBlock Text="Make time your own."
+                     FontSize="30" FontWeight="SemiBold" Foreground="#292D28"
+                     TextWrapping="Wrap" />
+          <TextBlock Classes="muted" Text="A simple space to focus, pause, and begin again."
+                     TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
+                CornerRadius="20" Padding="18">
+          <StackPanel Spacing="14">
+            <StackPanel Spacing="3">
+              <TextBlock Classes="kicker" Text="01  CHOOSE YOUR MODE" />
+              <TextBlock Classes="heading" Text="How would you like to count?" TextWrapping="Wrap" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+              <Button Grid.Row="0" Grid.Column="0" Classes="mode" Margin="0,0,5,5"
+                      Classes.selected="{Binding IsStopwatchSelected}"
+                      Command="{Binding SelectStopwatchCommand}" Content="Stopwatch" />
+              <Button Grid.Row="0" Grid.Column="1" Classes="mode" Margin="5,0,0,5"
+                      Classes.selected="{Binding IsCountUpSelected}"
+                      Command="{Binding SelectCountUpCommand}" Content="Count up" />
+              <Button Grid.Row="1" Grid.Column="0" Classes="mode" Margin="0,5,5,0"
+                      Classes.selected="{Binding IsCountdownSelected}"
+                      Command="{Binding SelectCountdownCommand}" Content="Countdown" />
+              <Button Grid.Row="1" Grid.Column="1" Classes="mode" Margin="5,5,0,0"
+                      Classes.selected="{Binding IsIntervalsSelected}"
+                      Command="{Binding SelectIntervalsCommand}" Content="Intervals" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
+                CornerRadius="20" Padding="22,22,22,20">
+          <StackPanel Spacing="18">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="3">
+                <TextBlock Classes="heading" Text="{Binding ModeTitle}" />
+                <TextBlock Classes="muted" Text="{Binding ModeDescription}" TextWrapping="Wrap" />
+              </StackPanel>
+              <Border Grid.Column="1" Background="#F4E6DC" CornerRadius="12"
+                      Padding="10,5" VerticalAlignment="Top" Margin="10,0,0,0">
+                <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
+              </Border>
+            </Grid>
+
+            <Border Background="#F8F3EB" CornerRadius="18" Padding="16,24">
+              <StackPanel Spacing="7" HorizontalAlignment="Stretch">
+                <TextBlock Classes="kicker" Text="{Binding PhaseLabel}"
+                           HorizontalAlignment="Center" />
+                <Viewbox Stretch="Uniform" MaxHeight="82" HorizontalAlignment="Center">
+                  <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold"
+                             Foreground="#292D28" />
+                </Viewbox>
+                <TextBlock Classes="muted" Text="{Binding DetailLabel}"
+                           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <ProgressBar IsVisible="{Binding HasProgress}" Value="{Binding ProgressPercent}"
+                         Minimum="0" Maximum="100" Height="7"
+                         Foreground="#B96B50" Background="#EDE5DA" />
+
+            <Grid ColumnDefinitions="2*,*">
+              <Button Grid.Column="0" Classes="action" Margin="0,0,6,0"
+                      Content="{Binding PrimaryActionLabel}" Command="{Binding StartOrPauseCommand}" />
+              <Button Grid.Column="1" Classes="secondary" Margin="6,0,0,0"
+                      Content="Reset" Command="{Binding ResetCommand}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Border IsVisible="{Binding IsDurationMode}" IsEnabled="{Binding CanEditSettings}"
+                Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
+                CornerRadius="20" Padding="18">
+          <StackPanel Spacing="14">
+            <StackPanel Spacing="3">
+              <TextBlock Classes="kicker" Text="02  SET YOUR DURATION" />
+              <TextBlock Classes="heading" Text="Your target time" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="muted" Text="Minutes" />
+                <TextBox Classes="timeInput" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="3" PlaceholderText="0" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="muted" Text="Seconds" />
+                <TextBox Classes="timeInput" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="2" PlaceholderText="0" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Border IsVisible="{Binding IsIntervalsSelected}" IsEnabled="{Binding CanEditSettings}"
+                Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
+                CornerRadius="20" Padding="18">
+          <StackPanel Spacing="16">
+            <StackPanel Spacing="3">
+              <TextBlock Classes="kicker" Text="02  SHAPE YOUR SESSION" />
+              <TextBlock Classes="heading" Text="Work, rest, repeat" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="muted" Text="Work · min" />
+                <TextBox Classes="timeInput" Text="{Binding WorkMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="3" PlaceholderText="0" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="muted" Text="Work · sec" />
+                <TextBox Classes="timeInput" Text="{Binding WorkSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="2" PlaceholderText="45" />
+              </StackPanel>
+            </Grid>
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="muted" Text="Rest · min" />
+                <TextBox Classes="timeInput" Text="{Binding RestMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="3" PlaceholderText="0" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="muted" Text="Rest · sec" />
+                <TextBox Classes="timeInput" Text="{Binding RestSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="2" PlaceholderText="15" />
+              </StackPanel>
+            </Grid>
+            <StackPanel Spacing="6">
+              <TextBlock Classes="muted" Text="Rounds" />
+              <TextBox Classes="timeInput" Text="{Binding Rounds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       MaxLength="2" PlaceholderText="4" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border IsVisible="{Binding HasError}" Background="#F9E9E2"
+                BorderBrush="#E7C7B9" BorderThickness="1" CornerRadius="12" Padding="14,11">
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="#8B4938" TextWrapping="Wrap" />
+        </Border>
+
+        <TextBlock Classes="muted" Text="Take your time. The next moment is yours."
+                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,2,0,0" />
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
 </UserControl>

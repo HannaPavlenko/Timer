@@ -4,7 +4,7 @@ A cross-platform timer application built with Avalonia UI for Windows and Androi
 
 ## Project status
 
-The shared Avalonia application and both platform entry points build successfully. The timer modes are implemented in the shared core and covered by automated tests. The current screen is still the starter view; the finished interface is the next development step.
+The shared Avalonia application and both platform entry points build successfully. The timer modes are implemented in the shared core and covered by automated tests. The English interface provides mode selection, duration inputs, progress, and start, pause, resume, and reset controls.
 
 Implemented timer modes:
 
@@ -12,7 +12,7 @@ Implemented timer modes:
 - Count up to a target duration and countdown from a target duration
 - Interval timer with configurable work, rest, and rounds
 
-The finished interface will use English labels and a neutral, warm palette.
+The interface uses English labels and a neutral, warm palette.
 
 ## Technology
 
@@ -50,4 +50,4 @@ To run on Android, select the `Timer.Android` project and a connected device or 
 | `Timer.Desktop/` | Windows desktop entry point |
 | `Timer.Android/` | Android entry point and resources |
 
-The application currently uses the template icons; original branding will be added with the finished interface.
+The application currently uses the template icons; original branding is planned for the final polish step.
