@@ -39,6 +39,8 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty] private string _durationMinutes = "5";
     [ObservableProperty] private string _durationSeconds = "0";
+    [ObservableProperty] private string _preparationMinutes = "0";
+    [ObservableProperty] private string _preparationSeconds = "10";
     [ObservableProperty] private string _workMinutes = "0";
     [ObservableProperty] private string _workSeconds = "45";
     [ObservableProperty] private string _restMinutes = "0";
@@ -59,6 +61,8 @@ public partial class MainViewModel : ViewModelBase
 
     partial void OnDurationMinutesChanged(string value) => RefreshReadyPreview();
     partial void OnDurationSecondsChanged(string value) => RefreshReadyPreview();
+    partial void OnPreparationMinutesChanged(string value) => RefreshReadyPreview();
+    partial void OnPreparationSecondsChanged(string value) => RefreshReadyPreview();
     partial void OnWorkMinutesChanged(string value) => RefreshReadyPreview();
     partial void OnWorkSecondsChanged(string value) => RefreshReadyPreview();
     partial void OnRestMinutesChanged(string value) => RefreshReadyPreview();
@@ -183,16 +187,17 @@ public partial class MainViewModel : ViewModelBase
             return true;
         }
 
-        if (!TryDuration(WorkMinutes, WorkSeconds, out var work) ||
+        if (!TryDuration(PreparationMinutes, PreparationSeconds, out var preparation, allowZero: true) ||
+            !TryDuration(WorkMinutes, WorkSeconds, out var work) ||
             !TryDuration(RestMinutes, RestSeconds, out var rest) ||
             !int.TryParse(Rounds, NumberStyles.None, CultureInfo.InvariantCulture, out var rounds) ||
             rounds is < 1 or > 99)
         {
-            ErrorMessage = "Enter valid work and rest times, and 1 to 99 rounds.";
+            ErrorMessage = "Enter valid preparation, work and rest times, and 1 to 99 rounds.";
             return false;
         }
 
-        _engine.ConfigureIntervals(work, rest, rounds);
+        _engine.ConfigureIntervals(preparation, work, rest, rounds);
         return true;
     }
 
@@ -223,6 +228,7 @@ public partial class MainViewModel : ViewModelBase
             TimerMode.Countdown => "TIME REMAINING",
             TimerMode.Intervals => snapshot.Phase switch
             {
+                IntervalPhase.Prepare => "GET READY",
                 IntervalPhase.Work => "WORK INTERVAL",
                 IntervalPhase.Rest => "REST INTERVAL",
                 _ => "SESSION COMPLETE"
@@ -236,9 +242,11 @@ public partial class MainViewModel : ViewModelBase
                 : "A little time, well spent.",
             TimerMode.CountUp => $"Goal  {FormatTime(snapshot.Target!.Value)}",
             TimerMode.Countdown => $"From  {FormatTime(snapshot.Target!.Value)}",
-            TimerMode.Intervals => $"Round {snapshot.Round} of {snapshot.Rounds}  ·  " +
-                (snapshot.Phase == IntervalPhase.Rest ? "rest" :
-                 snapshot.Phase == IntervalPhase.Complete ? "complete" : "work"),
+            TimerMode.Intervals => snapshot.Phase == IntervalPhase.Prepare
+                ? $"Prepare for round 1 of {snapshot.Rounds}"
+                : $"Round {snapshot.Round} of {snapshot.Rounds}  ·  " +
+                    (snapshot.Phase == IntervalPhase.Rest ? "rest" :
+                     snapshot.Phase == IntervalPhase.Complete ? "complete" : "work"),
             _ => string.Empty
         };
         PrimaryActionLabel = snapshot.Status switch
@@ -253,13 +261,14 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanEditSettings));
     }
 
-    private static bool TryDuration(string minutesText, string secondsText, out TimeSpan duration)
+    private static bool TryDuration(string minutesText, string secondsText, out TimeSpan duration,
+        bool allowZero = false)
     {
         duration = TimeSpan.Zero;
         if (!int.TryParse(minutesText, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes) ||
             !int.TryParse(secondsText, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds) ||
             minutes is < 0 or > 999 || seconds is < 0 or > 59 ||
-            minutes == 0 && seconds == 0)
+            !allowZero && minutes == 0 && seconds == 0)
             return false;
 
         duration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);

@@ -19,9 +19,9 @@ These images were rendered from the real Avalonia view with the headless Skia re
 | Stopwatch | Counts up without a target. |
 | Count up | Counts up to a chosen duration and stops. |
 | Countdown | Counts down from a chosen duration to zero. |
-| Intervals | Alternates work and rest for a chosen number of rounds; the last work period ends the session without a final rest. |
+| Intervals | Starts with an optional preparation countdown, then alternates work and rest for a chosen number of rounds; the last work period ends the session without a final rest. |
 
-All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. The engine uses monotonic timestamps, so a delayed screen refresh does not change the measured time.
+All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. Preparation runs once before the first work interval; set it to 0:00 to skip it. The engine uses monotonic timestamps, so a delayed screen refresh does not change the measured time.
 
 Timer state is held in memory. Restarting the app starts a fresh session.
 

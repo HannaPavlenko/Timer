@@ -9,6 +9,7 @@ public sealed class TimerEngine
     private TimerMode _mode = TimerMode.Stopwatch;
     private TimerStatus _status = TimerStatus.Ready;
     private TimeSpan _duration;
+    private TimeSpan _preparation;
     private TimeSpan _work;
     private TimeSpan _rest;
     private int _rounds;
@@ -36,8 +37,13 @@ public sealed class TimerEngine
         _duration = duration;
     }
 
-    public void ConfigureIntervals(TimeSpan work, TimeSpan rest, int rounds)
+    public void ConfigureIntervals(TimeSpan work, TimeSpan rest, int rounds) =>
+        ConfigureIntervals(TimeSpan.Zero, work, rest, rounds);
+
+    public void ConfigureIntervals(TimeSpan preparation, TimeSpan work, TimeSpan rest, int rounds)
     {
+        if (preparation < TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(preparation), "Preparation cannot be negative.");
         RequirePositive(work, nameof(work));
         RequirePositive(rest, nameof(rest));
         if (rounds < 1)
@@ -46,7 +52,7 @@ public sealed class TimerEngine
         try
         {
             _ = checked(work.Ticks + rest.Ticks);
-            _ = checked(work.Ticks * rounds + rest.Ticks * (rounds - 1L));
+            _ = checked(preparation.Ticks + work.Ticks * rounds + rest.Ticks * (rounds - 1L));
         }
         catch (OverflowException)
         {
@@ -54,6 +60,7 @@ public sealed class TimerEngine
         }
 
         Configure(TimerMode.Intervals);
+        _preparation = preparation;
         _work = work;
         _rest = rest;
         _rounds = rounds;
@@ -115,9 +122,14 @@ public sealed class TimerEngine
             return new(_mode, _status, IntervalPhase.Complete, _rounds, _rounds,
                 _work, TimeSpan.Zero, _work, totalElapsed, totalDuration);
 
+        if (totalElapsed < _preparation)
+            return new(_mode, _status, IntervalPhase.Prepare, 1, _rounds,
+                totalElapsed, _preparation - totalElapsed, _preparation, totalElapsed, totalDuration);
+
         var cycleTicks = checked(_work.Ticks + _rest.Ticks);
-        var completedCycles = totalElapsed.Ticks / cycleTicks;
-        var offsetTicks = totalElapsed.Ticks % cycleTicks;
+        var intervalTicks = totalElapsed.Ticks - _preparation.Ticks;
+        var completedCycles = intervalTicks / cycleTicks;
+        var offsetTicks = intervalTicks % cycleTicks;
         var round = checked((int)completedCycles + 1);
         var isWork = offsetTicks < _work.Ticks;
         var phaseDuration = isWork ? _work : _rest;
@@ -139,7 +151,7 @@ public sealed class TimerEngine
         TimerMode.Stopwatch => null,
         TimerMode.CountUp or TimerMode.Countdown => _duration,
         TimerMode.Intervals => TimeSpan.FromTicks(
-            checked(_work.Ticks * _rounds + _rest.Ticks * (_rounds - 1L))),
+            checked(_preparation.Ticks + _work.Ticks * _rounds + _rest.Ticks * (_rounds - 1L))),
         _ => throw new InvalidOperationException("Unknown timer mode.")
     };
 

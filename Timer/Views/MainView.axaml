@@ -173,8 +173,20 @@
           <StackPanel Spacing="16">
             <StackPanel Spacing="3">
               <TextBlock Classes="kicker" Text="02  SHAPE YOUR SESSION" />
-              <TextBlock Classes="heading" Text="Work, rest, repeat" />
+              <TextBlock Classes="heading" Text="Prepare, work, rest" />
             </StackPanel>
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Classes="muted" Text="Prepare · min" />
+                <TextBox Classes="timeInput" Text="{Binding PreparationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="3" PlaceholderText="0" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Classes="muted" Text="Prepare · sec" />
+                <TextBox Classes="timeInput" Text="{Binding PreparationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="2" PlaceholderText="10" />
+              </StackPanel>
+            </Grid>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Work · min" />

@@ -84,6 +84,36 @@ public sealed class TimerEngineTests
     }
 
     [TestMethod]
+    public void PreparationRunsOnceBeforeTheFirstWorkInterval()
+    {
+        var clock = new ManualTimeProvider();
+        var timer = new TimerEngine(clock);
+        timer.ConfigureIntervals(TimeSpan.FromSeconds(7), TimeSpan.FromSeconds(10),
+            TimeSpan.FromSeconds(5), 2);
+
+        var ready = timer.Update();
+        Assert.AreEqual(IntervalPhase.Prepare, ready.Phase);
+        Assert.AreEqual(TimeSpan.FromSeconds(7), ready.Remaining);
+        Assert.AreEqual(TimeSpan.FromSeconds(32), ready.TotalDuration);
+
+        timer.Start();
+        clock.Advance(TimeSpan.FromSeconds(7));
+        var work = timer.Update();
+        Assert.AreEqual(IntervalPhase.Work, work.Phase);
+        Assert.AreEqual(1, work.Round);
+        Assert.AreEqual(TimeSpan.FromSeconds(10), work.Remaining);
+
+        clock.Advance(TimeSpan.FromSeconds(16));
+        var secondWork = timer.Update();
+        Assert.AreEqual(IntervalPhase.Work, secondWork.Phase);
+        Assert.AreEqual(2, secondWork.Round);
+        Assert.AreEqual(TimeSpan.FromSeconds(9), secondWork.Remaining);
+
+        clock.Advance(TimeSpan.FromSeconds(9));
+        Assert.AreEqual(IntervalPhase.Complete, timer.Update().Phase);
+    }
+
+    [TestMethod]
     public void IntervalsFinishAfterFinalWorkWithoutFinalRest()
     {
         var clock = new ManualTimeProvider();
