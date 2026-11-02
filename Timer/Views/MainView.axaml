@@ -108,10 +108,7 @@
                 CornerRadius="20" Padding="22,22,22,20">
           <StackPanel Spacing="18">
             <Grid ColumnDefinitions="*,Auto">
-              <StackPanel Spacing="3">
-                <TextBlock Classes="heading" Text="{Binding ModeTitle}" />
-                <TextBlock Classes="muted" Text="{Binding ModeDescription}" TextWrapping="Wrap" />
-              </StackPanel>
+              <TextBlock Classes="heading" Text="{Binding ModeTitle}" />
               <Border Grid.Column="1" Background="#F4E6DC" CornerRadius="12"
                       Padding="10,5" VerticalAlignment="Top" Margin="10,0,0,0">
                 <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
@@ -224,8 +221,6 @@
           <TextBlock Text="{Binding ErrorMessage}" Foreground="#8B4938" TextWrapping="Wrap" />
         </Border>
 
-        <TextBlock Classes="muted" Text="Take your time. The next moment is yours."
-                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,2,0,0" />
       </StackPanel>
     </Grid>
   </ScrollViewer>

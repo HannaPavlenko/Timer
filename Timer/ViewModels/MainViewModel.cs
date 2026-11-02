@@ -47,7 +47,6 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private string _restSeconds = "15";
     [ObservableProperty] private string _rounds = "4";
     [ObservableProperty] private string _modeTitle = "Stopwatch";
-    [ObservableProperty] private string _modeDescription = "Keep time without a finish line.";
     [ObservableProperty] private string _displayTime = "00:00";
     [ObservableProperty] private string _statusLabel = "READY";
     [ObservableProperty] private string _phaseLabel = "ELAPSED TIME";
@@ -124,14 +123,6 @@ public partial class MainViewModel : ViewModelBase
             TimerMode.Countdown => "Countdown",
             TimerMode.Intervals => "Intervals",
             _ => throw new ArgumentOutOfRangeException(nameof(mode))
-        };
-        ModeDescription = mode switch
-        {
-            TimerMode.Stopwatch => "Keep time without a finish line.",
-            TimerMode.CountUp => "Watch time grow toward your goal.",
-            TimerMode.Countdown => "Give a moment a clear ending.",
-            TimerMode.Intervals => "Move between focus and rest.",
-            _ => string.Empty
         };
 
         OnPropertyChanged(nameof(SelectedModeIndex));
