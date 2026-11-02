@@ -37,7 +37,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private string _rounds = "4";
     [ObservableProperty] private string _modeTitle = "Stopwatch";
     [ObservableProperty] private string _modeDescription = "Keep time without a finish line.";
-    [ObservableProperty] private string _displayTime = "00:00.0";
+    [ObservableProperty] private string _displayTime = "00:00";
     [ObservableProperty] private string _statusLabel = "READY";
     [ObservableProperty] private string _phaseLabel = "ELAPSED TIME";
     [ObservableProperty] private string _detailLabel = "Start whenever you're ready.";
@@ -142,7 +142,7 @@ public partial class MainViewModel : ViewModelBase
             Refresh();
         else
         {
-            DisplayTime = "--:--.-";
+            DisplayTime = "--:--";
             StatusLabel = "READY";
             PhaseLabel = "SET YOUR TIME";
             DetailLabel = "Check the values below.";
@@ -200,7 +200,7 @@ public partial class MainViewModel : ViewModelBase
         {
             TimerMode.Countdown or TimerMode.Intervals => snapshot.Remaining,
             _ => snapshot.Elapsed
-        });
+        }, roundUp: snapshot.Mode is TimerMode.Countdown or TimerMode.Intervals);
         StatusLabel = snapshot.Status switch
         {
             TimerStatus.Ready => "READY",
@@ -259,11 +259,18 @@ public partial class MainViewModel : ViewModelBase
         return true;
     }
 
-    private static string FormatTime(TimeSpan time)
+    private static string FormatTime(TimeSpan time, bool roundUp = false)
     {
-        if (time.TotalHours >= 1)
-            return $"{(int)time.TotalHours:00}:{time.Minutes:00}:{time.Seconds:00}";
+        var totalSeconds = time.Ticks / TimeSpan.TicksPerSecond;
+        if (roundUp && time.Ticks % TimeSpan.TicksPerSecond != 0)
+            totalSeconds++;
 
-        return $"{(int)time.TotalMinutes:00}:{time.Seconds:00}.{time.Milliseconds / 100}";
+        var hours = totalSeconds / 3600;
+        var minutes = totalSeconds % 3600 / 60;
+        var seconds = totalSeconds % 60;
+        if (hours > 0)
+            return $"{hours:00}:{minutes:00}:{seconds:00}";
+
+        return $"{minutes:00}:{seconds:00}";
     }
 }

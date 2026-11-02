@@ -12,16 +12,16 @@ public sealed class MainViewModelTests
         var viewModel = new MainViewModel();
         viewModel.SelectCountdownCommand.Execute(null);
 
-        Assert.AreEqual("05:00.0", viewModel.DisplayTime);
+        Assert.AreEqual("05:00", viewModel.DisplayTime);
         Assert.IsTrue(viewModel.IsDurationMode);
 
         viewModel.DurationSeconds = "75";
         Assert.IsTrue(viewModel.HasError);
-        Assert.AreEqual("--:--.-", viewModel.DisplayTime);
+        Assert.AreEqual("--:--", viewModel.DisplayTime);
 
         viewModel.DurationSeconds = "30";
         Assert.IsFalse(viewModel.HasError);
-        Assert.AreEqual("05:30.0", viewModel.DisplayTime);
+        Assert.AreEqual("05:30", viewModel.DisplayTime);
     }
 
     [TestMethod]
@@ -46,7 +46,7 @@ public sealed class MainViewModelTests
 
         viewModel.ResetCommand.Execute(null);
         Assert.AreEqual("READY", viewModel.StatusLabel);
-        Assert.AreEqual("00:00.0", viewModel.DisplayTime);
+        Assert.AreEqual("00:00", viewModel.DisplayTime);
         Assert.IsTrue(viewModel.CanEditSettings);
     }
 
@@ -60,7 +60,7 @@ public sealed class MainViewModelTests
         viewModel.SelectIntervalsCommand.Execute(null);
         Assert.IsTrue(viewModel.IsIntervalsSelected);
         Assert.AreEqual("READY", viewModel.StatusLabel);
-        Assert.AreEqual("00:45.0", viewModel.DisplayTime);
+        Assert.AreEqual("00:45", viewModel.DisplayTime);
         Assert.AreEqual("Round 1 of 4  ·  work", viewModel.DetailLabel);
         Assert.IsTrue(viewModel.CanEditSettings);
     }
