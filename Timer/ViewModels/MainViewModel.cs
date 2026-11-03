@@ -274,6 +274,8 @@ public partial class MainViewModel : ViewModelBase
         bool allowZero = false)
     {
         duration = TimeSpan.Zero;
+        minutesText = string.IsNullOrEmpty(minutesText) ? "0" : minutesText;
+        secondsText = string.IsNullOrEmpty(secondsText) ? "0" : secondsText;
         if (!int.TryParse(minutesText, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes) ||
             !int.TryParse(secondsText, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds) ||
             minutes is < 0 or > 999 || seconds is < 0 or > 59 ||

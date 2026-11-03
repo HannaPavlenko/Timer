@@ -115,4 +115,27 @@ public sealed class MainViewModelTests
         Assert.AreEqual("30", viewModel.DurationSeconds);
         Assert.AreEqual("02:30", viewModel.DisplayTime);
     }
+
+    [TestMethod]
+    public void SixSecondsStartsWithEmptyMinutesInBothDurationModes()
+    {
+        var viewModel = new MainViewModel();
+        viewModel.SelectCountUpCommand.Execute(null);
+        viewModel.DurationMinutes = "";
+        viewModel.DurationSeconds = "6";
+
+        Assert.IsFalse(viewModel.HasError);
+        Assert.AreEqual("Goal  00:06", viewModel.DetailLabel);
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+
+        viewModel.SelectCountdownCommand.Execute(null);
+        viewModel.DurationMinutes = "";
+        viewModel.DurationSeconds = "6";
+
+        Assert.IsFalse(viewModel.HasError);
+        Assert.AreEqual("00:06", viewModel.DisplayTime);
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+    }
 }
