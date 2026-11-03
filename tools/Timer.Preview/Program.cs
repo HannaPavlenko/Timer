@@ -1,14 +1,19 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using Timer.Controls;
 using Timer.ViewModels;
 using Timer.Views;
 
-if (args.Length != 3 || !int.TryParse(args[1], out var width) || width < 320)
+var verifyInput = args.Length == 1 && args[0] == "verify-input";
+var width = 0;
+if (!verifyInput && (args.Length != 3 || !int.TryParse(args[1], out width) || width < 320))
 {
-    Console.Error.WriteLine("Usage: Timer.Preview <stopwatch|countdown|intervals> <width> <output.png>");
+    Console.Error.WriteLine("Usage: Timer.Preview <stopwatch|countdown|intervals> <width> <output.png> | verify-input");
     return 1;
 }
 
@@ -18,6 +23,41 @@ AppBuilder.Configure<Timer.App>()
     .SetupWithoutStarting();
 
 var viewModel = new MainViewModel();
+if (verifyInput)
+{
+    viewModel.SelectCountUpCommand.Execute(null);
+    var inputWindow = new Window
+    {
+        Width = 520,
+        Height = 800,
+        Content = new MainView { DataContext = viewModel }
+    };
+    inputWindow.Show();
+    Dispatcher.UIThread.RunJobs();
+
+    var inputs = inputWindow.GetVisualDescendants().OfType<DigitsOnlyTextBox>()
+        .Take(2).ToArray();
+    var success = inputs.Length == 2;
+    foreach (var input in inputs)
+    {
+        input.Text = "";
+        input.Focus();
+        inputWindow.KeyTextInput("а");
+        inputWindow.KeyTextInput("a");
+        Dispatcher.UIThread.RunJobs();
+        success &= input.Text == "";
+        inputWindow.KeyTextInput("6");
+        Dispatcher.UIThread.RunJobs();
+        success &= input.Text == "6";
+        if (OperatingSystem.IsWindows())
+            success &= !InputMethod.GetIsInputMethodEnabled(input);
+    }
+
+    Console.WriteLine(success ? "Numeric inputs accept digits and reject letters." : "Numeric input verification failed.");
+    inputWindow.Close();
+    return success ? 0 : 1;
+}
+
 switch (args[0].ToLowerInvariant())
 {
     case "stopwatch":
