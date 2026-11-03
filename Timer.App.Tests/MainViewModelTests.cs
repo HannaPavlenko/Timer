@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Avalonia.Controls;
 using Timer.Controls;
 using Timer.ViewModels;
 
@@ -12,6 +13,7 @@ public sealed class MainViewModelTests
     {
         var input = new DigitsOnlyTextBox { Text = "вап12a3" };
 
+        Assert.AreEqual(typeof(TextBox), input.StyleKey);
         Assert.AreEqual("123", input.Text);
         input.Text = "4 5-6";
         Assert.AreEqual("456", input.Text);

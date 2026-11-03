@@ -73,7 +73,7 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="controls|DigitsOnlyTextBox.timeInput">
+    <Style Selector="TextBox.timeInput">
       <Setter Property="input:TextInputOptions.ContentType" Value="Digits" />
       <Setter Property="Background" Value="#FFFCF7" />
       <Setter Property="Foreground" Value="#292D28" />
