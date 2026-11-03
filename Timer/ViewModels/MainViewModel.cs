@@ -13,9 +13,13 @@ public partial class MainViewModel : ViewModelBase
     private readonly DispatcherTimer _refreshTimer;
     private TimerMode _selectedMode;
     private TimerStatus _status = TimerStatus.Ready;
+    private (string Minutes, string Seconds) _countUpDuration;
+    private (string Minutes, string Seconds) _countdownDuration;
 
     public MainViewModel()
     {
+        _countUpDuration = (DurationMinutes, DurationSeconds);
+        _countdownDuration = (DurationMinutes, DurationSeconds);
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _refreshTimer.Tick += (_, _) => Refresh();
         SelectMode(TimerMode.Stopwatch);
@@ -37,20 +41,20 @@ public partial class MainViewModel : ViewModelBase
     public bool IsDurationMode => _selectedMode is TimerMode.CountUp or TimerMode.Countdown;
     public bool CanEditSettings => _status is TimerStatus.Ready or TimerStatus.Completed;
 
-    [ObservableProperty] private string _durationMinutes = "5";
+    [ObservableProperty] private string _durationMinutes = "0";
     [ObservableProperty] private string _durationSeconds = "0";
     [ObservableProperty] private string _preparationMinutes = "0";
     [ObservableProperty] private string _preparationSeconds = "10";
     [ObservableProperty] private string _workMinutes = "0";
-    [ObservableProperty] private string _workSeconds = "45";
+    [ObservableProperty] private string _workSeconds = "0";
     [ObservableProperty] private string _restMinutes = "0";
-    [ObservableProperty] private string _restSeconds = "15";
-    [ObservableProperty] private string _rounds = "4";
+    [ObservableProperty] private string _restSeconds = "0";
+    [ObservableProperty] private string _rounds = "0";
     [ObservableProperty] private string _modeTitle = "Stopwatch";
     [ObservableProperty] private string _displayTime = "00:00";
     [ObservableProperty] private string _statusLabel = "READY";
     [ObservableProperty] private string _phaseLabel = "ELAPSED TIME";
-    [ObservableProperty] private string _detailLabel = "Start whenever you're ready.";
+    [ObservableProperty] private string _detailLabel = "";
     [ObservableProperty] private string _primaryActionLabel = "Start timer";
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private double _progressPercent;
@@ -114,8 +118,22 @@ public partial class MainViewModel : ViewModelBase
     private void SelectMode(TimerMode mode)
     {
         _refreshTimer.Stop();
+        if (_selectedMode == TimerMode.CountUp)
+            _countUpDuration = (DurationMinutes, DurationSeconds);
+        else if (_selectedMode == TimerMode.Countdown)
+            _countdownDuration = (DurationMinutes, DurationSeconds);
+
         _selectedMode = mode;
         _status = TimerStatus.Ready;
+        if (mode is TimerMode.CountUp or TimerMode.Countdown)
+        {
+            var (minutes, seconds) = mode == TimerMode.CountUp
+                ? _countUpDuration
+                : _countdownDuration;
+            DurationMinutes = minutes;
+            DurationSeconds = seconds;
+        }
+
         ModeTitle = mode switch
         {
             TimerMode.Stopwatch => "Stopwatch",

@@ -146,8 +146,7 @@
                 CornerRadius="20" Padding="18">
           <StackPanel Spacing="14">
             <StackPanel Spacing="3">
-              <TextBlock Classes="kicker" Text="02  SET YOUR DURATION" />
-              <TextBlock Classes="heading" Text="Your target time" />
+              <TextBlock Classes="heading" Text="Target time" />
             </StackPanel>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">

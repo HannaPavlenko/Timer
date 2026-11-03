@@ -11,6 +11,7 @@ public sealed class MainViewModelTests
     {
         var viewModel = new MainViewModel();
         viewModel.SelectCountdownCommand.Execute(null);
+        viewModel.DurationMinutes = "5";
 
         Assert.AreEqual("05:00", viewModel.DisplayTime);
         Assert.IsTrue(viewModel.IsDurationMode);
@@ -57,6 +58,9 @@ public sealed class MainViewModelTests
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
 
+        viewModel.WorkSeconds = "45";
+        viewModel.RestSeconds = "15";
+        viewModel.Rounds = "4";
         viewModel.SelectedModeIndex = 3;
         Assert.IsTrue(viewModel.IsIntervalsSelected);
         Assert.AreEqual(3, viewModel.SelectedModeIndex);
@@ -73,5 +77,29 @@ public sealed class MainViewModelTests
         viewModel.SelectCountdownCommand.Execute(null);
         Assert.AreEqual(2, viewModel.SelectedModeIndex);
         Assert.IsTrue(viewModel.IsDurationMode);
+    }
+
+    [TestMethod]
+    public void CountUpAndCountdownKeepSeparateTargets()
+    {
+        var viewModel = new MainViewModel();
+        viewModel.SelectCountUpCommand.Execute(null);
+        viewModel.DurationMinutes = "1";
+        viewModel.DurationSeconds = "20";
+
+        viewModel.SelectCountdownCommand.Execute(null);
+        viewModel.DurationMinutes = "2";
+        viewModel.DurationSeconds = "30";
+        Assert.AreEqual("02:30", viewModel.DisplayTime);
+
+        viewModel.SelectCountUpCommand.Execute(null);
+        Assert.AreEqual("1", viewModel.DurationMinutes);
+        Assert.AreEqual("20", viewModel.DurationSeconds);
+        Assert.AreEqual("Goal  01:20", viewModel.DetailLabel);
+
+        viewModel.SelectCountdownCommand.Execute(null);
+        Assert.AreEqual("2", viewModel.DurationMinutes);
+        Assert.AreEqual("30", viewModel.DurationSeconds);
+        Assert.AreEqual("02:30", viewModel.DisplayTime);
     }
 }
