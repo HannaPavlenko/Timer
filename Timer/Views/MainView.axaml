@@ -1,5 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:input="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:controls="using:Timer.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Timer.ViewModels"
@@ -71,7 +73,8 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="TextBox.timeInput">
+    <Style Selector="controls|DigitsOnlyTextBox.timeInput">
+      <Setter Property="input:TextInputOptions.ContentType" Value="Digits" />
       <Setter Property="Background" Value="#FFFCF7" />
       <Setter Property="Foreground" Value="#292D28" />
       <Setter Property="BorderBrush" Value="#DED5C8" />
@@ -151,12 +154,12 @@
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Minutes" />
-                <TextBox Classes="timeInput" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="3" PlaceholderText="0" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Seconds" />
-                <TextBox Classes="timeInput" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="2" PlaceholderText="0" />
               </StackPanel>
             </Grid>
@@ -174,42 +177,42 @@
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Prepare · min" />
-                <TextBox Classes="timeInput" Text="{Binding PreparationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding PreparationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="3" PlaceholderText="0" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Prepare · sec" />
-                <TextBox Classes="timeInput" Text="{Binding PreparationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding PreparationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="2" PlaceholderText="10" />
               </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Work · min" />
-                <TextBox Classes="timeInput" Text="{Binding WorkMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding WorkMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="3" PlaceholderText="0" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Work · sec" />
-                <TextBox Classes="timeInput" Text="{Binding WorkSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding WorkSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="2" PlaceholderText="45" />
               </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Rest · min" />
-                <TextBox Classes="timeInput" Text="{Binding RestMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding RestMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="3" PlaceholderText="0" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Rest · sec" />
-                <TextBox Classes="timeInput" Text="{Binding RestSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding RestSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="2" PlaceholderText="15" />
               </StackPanel>
             </Grid>
             <StackPanel Spacing="6">
               <TextBlock Classes="muted" Text="Rounds" />
-              <TextBox Classes="timeInput" Text="{Binding Rounds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+              <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding Rounds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                        MaxLength="2" PlaceholderText="4" />
             </StackPanel>
           </StackPanel>

@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Timer.Controls;
 using Timer.ViewModels;
 
 namespace Timer.App.Tests;
@@ -6,6 +7,16 @@ namespace Timer.App.Tests;
 [TestClass]
 public sealed class MainViewModelTests
 {
+    [TestMethod]
+    public void NumericTimeInputKeepsOnlyAsciiDigits()
+    {
+        var input = new DigitsOnlyTextBox { Text = "вап12a3" };
+
+        Assert.AreEqual("123", input.Text);
+        input.Text = "4 5-6";
+        Assert.AreEqual("456", input.Text);
+    }
+
     [TestMethod]
     public void CountdownShowsPresetAndRejectsInvalidSeconds()
     {
