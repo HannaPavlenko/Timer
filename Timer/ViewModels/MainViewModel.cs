@@ -10,6 +10,7 @@ namespace Timer.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly TimerEngine _engine = new();
+    private readonly TimerHistorySession _history = new(new TimerHistoryStore());
     private readonly DispatcherTimer _refreshTimer;
     private TimerMode _selectedMode;
     private TimerStatus _status = TimerStatus.Ready;
@@ -94,6 +95,9 @@ public partial class MainViewModel : ViewModelBase
         if (_status != TimerStatus.Paused && !TryConfigure())
             return;
 
+        if (_status != TimerStatus.Paused)
+            _history.StartNew(CreateHistoryEntry(_engine.Update()));
+
         _engine.Start();
         _refreshTimer.Start();
         Refresh();
@@ -103,6 +107,7 @@ public partial class MainViewModel : ViewModelBase
     private void Reset()
     {
         _refreshTimer.Stop();
+        _history.Stop(_engine.Update());
         _engine.Reset();
         _status = TimerStatus.Ready;
         PrepareMode();
@@ -120,6 +125,7 @@ public partial class MainViewModel : ViewModelBase
     private void SelectMode(TimerMode mode)
     {
         _refreshTimer.Stop();
+        _history.Stop(_engine.Update());
         if (_selectedMode == TimerMode.CountUp)
             _countUpDuration = (DurationMinutes, DurationSeconds);
         else if (_selectedMode == TimerMode.Countdown)
@@ -215,6 +221,7 @@ public partial class MainViewModel : ViewModelBase
     private void Refresh()
     {
         var snapshot = _engine.Update();
+        _history.Update(snapshot);
         _status = snapshot.Status;
         if (_status == TimerStatus.Completed)
             _refreshTimer.Stop();
@@ -268,6 +275,34 @@ public partial class MainViewModel : ViewModelBase
         HasProgress = snapshot.Target is not null;
         ProgressPercent = snapshot.Progress * 100;
         OnPropertyChanged(nameof(CanEditSettings));
+    }
+
+    private TimerHistoryEntry CreateHistoryEntry(TimerSnapshot snapshot)
+    {
+        var preparation = TimeSpan.Zero;
+        var work = TimeSpan.Zero;
+        var rest = TimeSpan.Zero;
+        var rounds = 0;
+
+        if (snapshot.Mode == TimerMode.Intervals)
+        {
+            _ = TryDuration(PreparationMinutes, PreparationSeconds, out preparation, allowZero: true);
+            _ = TryDuration(WorkMinutes, WorkSeconds, out work);
+            _ = TryDuration(RestMinutes, RestSeconds, out rest);
+            rounds = int.Parse(Rounds, CultureInfo.InvariantCulture);
+        }
+
+        return new TimerHistoryEntry(
+            Guid.NewGuid(),
+            snapshot.Mode,
+            DateTimeOffset.UtcNow,
+            TimerHistoryStatus.Running,
+            TimeSpan.Zero,
+            snapshot.Mode is TimerMode.CountUp or TimerMode.Countdown ? snapshot.Target : null,
+            preparation,
+            work,
+            rest,
+            rounds);
     }
 
     private static bool TryDuration(string minutesText, string secondsText, out TimeSpan duration,
