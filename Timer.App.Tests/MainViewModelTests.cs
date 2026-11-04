@@ -31,7 +31,7 @@ public sealed class MainViewModelTests
 
         viewModel.DurationSeconds = "75";
         Assert.IsTrue(viewModel.HasError);
-        Assert.AreEqual("--:--", viewModel.DisplayTime);
+        Assert.AreEqual("00:00", viewModel.DisplayTime);
 
         viewModel.DurationSeconds = "30";
         Assert.IsFalse(viewModel.HasError);
@@ -68,6 +68,7 @@ public sealed class MainViewModelTests
     public void SwitchingModesResetsTheSession()
     {
         var viewModel = new MainViewModel();
+        Assert.IsFalse(viewModel.HasDetailLabel);
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
 

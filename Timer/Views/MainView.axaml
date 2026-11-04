@@ -126,7 +126,7 @@
                   <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold"
                              Foreground="#292D28" />
                 </Viewbox>
-                <TextBlock Classes="muted" Text="{Binding DetailLabel}"
+                <TextBlock Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
               </StackPanel>
             </Border>
@@ -170,10 +170,6 @@
                 Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
                 CornerRadius="20" Padding="18">
           <StackPanel Spacing="16">
-            <StackPanel Spacing="3">
-              <TextBlock Classes="kicker" Text="02  SHAPE YOUR SESSION" />
-              <TextBlock Classes="heading" Text="Prepare, work, rest" />
-            </StackPanel>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Prepare · min" />

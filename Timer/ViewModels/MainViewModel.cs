@@ -61,6 +61,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private bool _hasProgress;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    public bool HasDetailLabel => !string.IsNullOrEmpty(DetailLabel);
 
     partial void OnDurationMinutesChanged(string value) => RefreshReadyPreview();
     partial void OnDurationSecondsChanged(string value) => RefreshReadyPreview();
@@ -72,6 +73,7 @@ public partial class MainViewModel : ViewModelBase
     partial void OnRestSecondsChanged(string value) => RefreshReadyPreview();
     partial void OnRoundsChanged(string value) => RefreshReadyPreview();
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
+    partial void OnDetailLabelChanged(string value) => OnPropertyChanged(nameof(HasDetailLabel));
 
     [RelayCommand] private void SelectStopwatch() => SelectMode(TimerMode.Stopwatch);
     [RelayCommand] private void SelectCountUp() => SelectMode(TimerMode.CountUp);
@@ -162,7 +164,7 @@ public partial class MainViewModel : ViewModelBase
             Refresh();
         else
         {
-            DisplayTime = "--:--";
+            DisplayTime = "00:00";
             StatusLabel = "READY";
             PhaseLabel = "SET YOUR TIME";
             DetailLabel = "Check the values below.";
@@ -246,9 +248,7 @@ public partial class MainViewModel : ViewModelBase
         };
         DetailLabel = snapshot.Mode switch
         {
-            TimerMode.Stopwatch => snapshot.Status == TimerStatus.Ready
-                ? "Start whenever you're ready."
-                : "A little time, well spent.",
+            TimerMode.Stopwatch => string.Empty,
             TimerMode.CountUp => $"Goal  {FormatTime(snapshot.Target!.Value)}",
             TimerMode.Countdown => $"From  {FormatTime(snapshot.Target!.Value)}",
             TimerMode.Intervals => snapshot.Phase == IntervalPhase.Prepare
