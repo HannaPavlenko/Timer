@@ -66,6 +66,9 @@ switch (args[0].ToLowerInvariant())
         viewModel.SelectCountdownCommand.Execute(null);
         break;
     case "intervals":
+        viewModel.WorkSeconds = "45";
+        viewModel.RestSeconds = "15";
+        viewModel.Rounds = "4";
         viewModel.SelectIntervalsCommand.Execute(null);
         break;
     default:

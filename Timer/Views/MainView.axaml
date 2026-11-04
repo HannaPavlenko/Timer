@@ -183,7 +183,7 @@
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Prepare · sec" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding PreparationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         MaxLength="2" PlaceholderText="10" />
+                         MaxLength="2" PlaceholderText="0" />
               </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,12,*">

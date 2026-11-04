@@ -78,14 +78,11 @@ public sealed class MainViewModelTests
         Assert.IsTrue(viewModel.IsIntervalsSelected);
         Assert.AreEqual(3, viewModel.SelectedModeIndex);
         Assert.AreEqual("READY", viewModel.StatusLabel);
-        Assert.AreEqual("00:10", viewModel.DisplayTime);
-        Assert.AreEqual("GET READY", viewModel.PhaseLabel);
-        Assert.AreEqual("Prepare for round 1 of 4", viewModel.DetailLabel);
-        Assert.IsTrue(viewModel.CanEditSettings);
-
-        viewModel.PreparationSeconds = "0";
+        Assert.AreEqual("0", viewModel.PreparationSeconds);
         Assert.AreEqual("00:45", viewModel.DisplayTime);
         Assert.AreEqual("WORK INTERVAL", viewModel.PhaseLabel);
+        Assert.AreEqual("Round 1 of 4  ·  work", viewModel.DetailLabel);
+        Assert.IsTrue(viewModel.CanEditSettings);
 
         viewModel.SelectCountdownCommand.Execute(null);
         Assert.AreEqual(2, viewModel.SelectedModeIndex);

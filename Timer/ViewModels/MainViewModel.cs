@@ -44,7 +44,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private string _durationMinutes = "0";
     [ObservableProperty] private string _durationSeconds = "0";
     [ObservableProperty] private string _preparationMinutes = "0";
-    [ObservableProperty] private string _preparationSeconds = "10";
+    [ObservableProperty] private string _preparationSeconds = "0";
     [ObservableProperty] private string _workMinutes = "0";
     [ObservableProperty] private string _workSeconds = "0";
     [ObservableProperty] private string _restMinutes = "0";
