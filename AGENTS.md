@@ -19,6 +19,7 @@
 - Timer.Core/TimerEngine.cs — движок отсчёта с монотонным временем и TimeProvider. Частота обновления UI не должна определять точность времени.
 - Timer.Core/TimerSnapshot.cs — снимок состояния. Для истории интервалов использовать TotalElapsed, а не время отдельной фазы.
 - Timer.Core/TimerHistoryEntry.cs — запись истории; TimerHistorySession.cs — переходы её состояний; TimerHistoryStore.cs — JSON-хранилище с ограничением размера.
+- Свойства ViewModel объявлять явно с get/set и SetProperty, без [ObservableProperty]. Сохранять уведомления зависимых свойств и обновление предварительного просмотра в сеттерах.
 - Timer/ViewModels/MainViewModel.cs — команды, настройки режимов, движок, обновление UI и история. Конструктор с ITimerHistoryStore позволяет тестировать без пользовательского AppData.
 - Timer/ViewModels/TimerHistoryItemViewModel.cs — отображение одной записи и команды Restart, Stop, Delete.
 - Timer/Views/MainView.axaml — общий экран, вкладки режимов и карточки истории. Это один общий экран с переключаемым содержимым, а не четыре независимых XAML-страницы.

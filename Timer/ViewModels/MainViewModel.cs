@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Timer.Core;
 
@@ -54,39 +53,180 @@ public partial class MainViewModel : ViewModelBase
     public ObservableCollection<TimerHistoryItemViewModel> HistoryItems { get; } = [];
     public bool HasNoHistory => HistoryItems.Count == 0;
 
-    [ObservableProperty] private string _durationMinutes = "0";
-    [ObservableProperty] private string _durationSeconds = "0";
-    [ObservableProperty] private string _preparationMinutes = "0";
-    [ObservableProperty] private string _preparationSeconds = "0";
-    [ObservableProperty] private string _workMinutes = "0";
-    [ObservableProperty] private string _workSeconds = "0";
-    [ObservableProperty] private string _restMinutes = "0";
-    [ObservableProperty] private string _restSeconds = "0";
-    [ObservableProperty] private string _rounds = "0";
-    [ObservableProperty] private string _modeTitle = "Stopwatch";
-    [ObservableProperty] private string _displayTime = "00:00";
-    [ObservableProperty] private string _statusLabel = "READY";
-    [ObservableProperty] private string _phaseLabel = "ELAPSED TIME";
-    [ObservableProperty] private string _detailLabel = "";
-    [ObservableProperty] private string _primaryActionLabel = "Start timer";
-    [ObservableProperty] private string _errorMessage = string.Empty;
-    [ObservableProperty] private double _progressPercent;
-    [ObservableProperty] private bool _hasProgress;
+    private string _durationMinutes = "0";
+    public string DurationMinutes
+    {
+        get => _durationMinutes;
+        set
+        {
+            if (SetProperty(ref _durationMinutes, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _durationSeconds = "0";
+    public string DurationSeconds
+    {
+        get => _durationSeconds;
+        set
+        {
+            if (SetProperty(ref _durationSeconds, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _preparationMinutes = "0";
+    public string PreparationMinutes
+    {
+        get => _preparationMinutes;
+        set
+        {
+            if (SetProperty(ref _preparationMinutes, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _preparationSeconds = "0";
+    public string PreparationSeconds
+    {
+        get => _preparationSeconds;
+        set
+        {
+            if (SetProperty(ref _preparationSeconds, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _workMinutes = "0";
+    public string WorkMinutes
+    {
+        get => _workMinutes;
+        set
+        {
+            if (SetProperty(ref _workMinutes, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _workSeconds = "0";
+    public string WorkSeconds
+    {
+        get => _workSeconds;
+        set
+        {
+            if (SetProperty(ref _workSeconds, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _restMinutes = "0";
+    public string RestMinutes
+    {
+        get => _restMinutes;
+        set
+        {
+            if (SetProperty(ref _restMinutes, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _restSeconds = "0";
+    public string RestSeconds
+    {
+        get => _restSeconds;
+        set
+        {
+            if (SetProperty(ref _restSeconds, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _rounds = "0";
+    public string Rounds
+    {
+        get => _rounds;
+        set
+        {
+            if (SetProperty(ref _rounds, value))
+                RefreshReadyPreview();
+        }
+    }
+
+    private string _modeTitle = "Stopwatch";
+    public string ModeTitle
+    {
+        get => _modeTitle;
+        set => SetProperty(ref _modeTitle, value);
+    }
+
+    private string _displayTime = "00:00";
+    public string DisplayTime
+    {
+        get => _displayTime;
+        set => SetProperty(ref _displayTime, value);
+    }
+
+    private string _statusLabel = "READY";
+    public string StatusLabel
+    {
+        get => _statusLabel;
+        set => SetProperty(ref _statusLabel, value);
+    }
+
+    private string _phaseLabel = "ELAPSED TIME";
+    public string PhaseLabel
+    {
+        get => _phaseLabel;
+        set => SetProperty(ref _phaseLabel, value);
+    }
+
+    private string _detailLabel = "";
+    public string DetailLabel
+    {
+        get => _detailLabel;
+        set
+        {
+            if (SetProperty(ref _detailLabel, value))
+                OnPropertyChanged(nameof(HasDetailLabel));
+        }
+    }
+
+    private string _primaryActionLabel = "Start timer";
+    public string PrimaryActionLabel
+    {
+        get => _primaryActionLabel;
+        set => SetProperty(ref _primaryActionLabel, value);
+    }
+
+    private string _errorMessage = string.Empty;
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set
+        {
+            if (SetProperty(ref _errorMessage, value))
+                OnPropertyChanged(nameof(HasError));
+        }
+    }
+
+    private double _progressPercent;
+    public double ProgressPercent
+    {
+        get => _progressPercent;
+        set => SetProperty(ref _progressPercent, value);
+    }
+
+    private bool _hasProgress;
+    public bool HasProgress
+    {
+        get => _hasProgress;
+        set => SetProperty(ref _hasProgress, value);
+    }
+
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
     public bool HasDetailLabel => !string.IsNullOrEmpty(DetailLabel);
 
-    partial void OnDurationMinutesChanged(string value) => RefreshReadyPreview();
-    partial void OnDurationSecondsChanged(string value) => RefreshReadyPreview();
-    partial void OnPreparationMinutesChanged(string value) => RefreshReadyPreview();
-    partial void OnPreparationSecondsChanged(string value) => RefreshReadyPreview();
-    partial void OnWorkMinutesChanged(string value) => RefreshReadyPreview();
-    partial void OnWorkSecondsChanged(string value) => RefreshReadyPreview();
-    partial void OnRestMinutesChanged(string value) => RefreshReadyPreview();
-    partial void OnRestSecondsChanged(string value) => RefreshReadyPreview();
-    partial void OnRoundsChanged(string value) => RefreshReadyPreview();
-    partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
-    partial void OnDetailLabelChanged(string value) => OnPropertyChanged(nameof(HasDetailLabel));
 
     [RelayCommand] private void SelectStopwatch() => SelectMode(TimerMode.Stopwatch);
     [RelayCommand] private void SelectCountUp() => SelectMode(TimerMode.CountUp);
