@@ -370,6 +370,39 @@ public sealed class MainViewModelTests
         }
     }
 
+    [TestMethod]
+    public void StopClearsSecondsButRestartKeepsSavedTarget()
+    {
+        foreach (var mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
+        {
+            var store = new MemoryHistoryStore();
+            var viewModel = new MainViewModel(store);
+            var otherMode = mode == TimerMode.CountUp ? TimerMode.Countdown : TimerMode.CountUp;
+            viewModel.SelectedModeIndex = (int)otherMode;
+            viewModel.DurationSeconds = "25";
+            viewModel.SelectedModeIndex = (int)mode;
+            viewModel.DurationMinutes = "1";
+            viewModel.DurationSeconds = "15";
+            viewModel.StartOrPauseCommand.Execute(null);
+            viewModel.HistoryItems[0].StopCommand.Execute(null);
+
+            Assert.AreEqual("0", viewModel.DurationSeconds);
+            Assert.AreEqual("1", viewModel.DurationMinutes);
+            Assert.AreEqual(TimeSpan.FromSeconds(75), store.Load()[0].Target);
+            viewModel.SelectedModeIndex = (int)otherMode;
+            Assert.AreEqual("25", viewModel.DurationSeconds);
+            viewModel.SelectedModeIndex = (int)mode;
+            Assert.AreEqual("0", viewModel.DurationSeconds);
+
+            viewModel.HistoryItems[0].RestartCommand.Execute(null);
+            Assert.AreEqual("15", viewModel.DurationSeconds);
+            Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+            viewModel.HistoryItems[0].StopCommand.Execute(null);
+            Assert.AreEqual("0", viewModel.DurationSeconds);
+            Assert.AreEqual(1, store.Load().Count);
+        }
+    }
+
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
     private sealed class MemoryHistoryStore : ITimerHistoryStore

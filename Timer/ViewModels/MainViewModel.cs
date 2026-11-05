@@ -320,7 +320,11 @@ public partial class MainViewModel : ViewModelBase
     private void StopHistoryEntry(Guid id)
     {
         if (_status == TimerStatus.Running && _history.CurrentEntryId == id)
+        {
             Reset();
+            if (IsDurationMode)
+                DurationSeconds = "0";
+        }
     }
 
     private void RestartHistoryEntry(TimerHistoryEntry entry)
