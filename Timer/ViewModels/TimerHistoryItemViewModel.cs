@@ -27,24 +27,23 @@ public sealed class TimerHistoryItemViewModel
             TimerHistoryStatus.Stopped => "Stopped",
             _ => throw new ArgumentOutOfRangeException(nameof(entry))
         };
-        StartedLabel = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
+        var started = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
+        TimeAndDateLabel = $"{FormatTime(entry.Elapsed)} · {started}";
         SettingsLabel = entry.Mode switch
         {
             TimerMode.CountUp or TimerMode.Countdown => $"Target {FormatTime(entry.Target ?? TimeSpan.Zero)}",
             TimerMode.Intervals => $"Prepare {FormatTime(entry.Preparation)} · Work {FormatTime(entry.Work)} · Rest {FormatTime(entry.Rest)} · {entry.Rounds} rounds",
             _ => string.Empty
         };
-        ElapsedLabel = $"Elapsed {FormatTime(entry.Elapsed)}";
         DeleteCommand = new RelayCommand(() => delete(entry.Id));
     }
 
     public Guid Id { get; }
     public string ModeLabel { get; }
     public string StatusLabel { get; }
-    public string StartedLabel { get; }
+    public string TimeAndDateLabel { get; }
     public string SettingsLabel { get; }
     public bool HasSettingsLabel => !string.IsNullOrEmpty(SettingsLabel);
-    public string ElapsedLabel { get; }
     public ICommand DeleteCommand { get; }
 
     private static string FormatTime(TimeSpan time)

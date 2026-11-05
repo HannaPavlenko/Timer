@@ -234,8 +234,7 @@
                           <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
                         </Border>
                       </Grid>
-                      <TextBlock Classes="muted" Text="{Binding ElapsedLabel}" />
-                      <TextBlock Classes="muted" Text="{Binding StartedLabel}" TextWrapping="NoWrap" />
+                      <TextBlock Classes="muted" Text="{Binding TimeAndDateLabel}" TextWrapping="NoWrap" />
                       <TextBlock Classes="muted" Text="{Binding SettingsLabel}"
                                  IsVisible="{Binding HasSettingsLabel}" TextWrapping="Wrap" />
                       <Button Classes="secondary" Content="Delete" HorizontalAlignment="Right"
