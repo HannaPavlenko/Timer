@@ -368,7 +368,7 @@ public partial class MainViewModel : ViewModelBase
     {
         HistoryItems.Clear();
         var entries = _historyStore.Load();
-        for (var index = entries.Count - 1; index >= 0; index--)
+        for (var index = 0; index < entries.Count; index++)
         {
             if (entries[index].Mode == _selectedMode)
                 HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry,

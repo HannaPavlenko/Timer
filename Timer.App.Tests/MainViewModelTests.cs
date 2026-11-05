@@ -207,7 +207,7 @@ public sealed class MainViewModelTests
             viewModel.DurationSeconds = "20";
             viewModel.StartOrPauseCommand.Execute(null);
 
-            viewModel.HistoryItems[1].RestartCommand.Execute(null);
+            viewModel.HistoryItems[0].RestartCommand.Execute(null);
 
             Assert.AreEqual("RUNNING", viewModel.StatusLabel);
             Assert.AreEqual("6", viewModel.DurationSeconds);
@@ -217,6 +217,10 @@ public sealed class MainViewModelTests
             Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[2].Target);
             Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[2].Status);
             Assert.AreNotEqual(saved.Id, store.Load()[2].Id);
+            Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[1].Id);
+            Assert.IsTrue(viewModel.HistoryItems[1].CanRestart);
+            Assert.AreEqual(store.Load()[2].Id, viewModel.HistoryItems[2].Id);
+            Assert.IsTrue(viewModel.HistoryItems[2].CanStop);
             viewModel.ResetCommand.Execute(null);
         }
     }
@@ -300,7 +304,7 @@ public sealed class MainViewModelTests
         first.StopCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
         Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[1].Status);
-        viewModel.HistoryItems[0].StopCommand.Execute(null);
+        viewModel.HistoryItems[1].StopCommand.Execute(null);
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
     }
 
