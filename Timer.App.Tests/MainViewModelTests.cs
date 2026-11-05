@@ -318,16 +318,18 @@ public sealed class MainViewModelTests
     }
 
     [TestMethod]
-    public void CompletedCountUpRestartsAndStopsInTheSameRow()
+    [DataRow(TimerMode.CountUp)]
+    [DataRow(TimerMode.Countdown)]
+    public void CompletedDurationTimerRestartsAndStopsInTheSameRow(TimerMode mode)
     {
         var store = new MemoryHistoryStore();
-        var completed = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.CountUp,
+        var completed = new TimerHistoryEntry(Guid.NewGuid(), mode,
             DateTimeOffset.UtcNow.AddMinutes(-5), TimerHistoryStatus.Completed,
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10),
             EndedAtUtc: DateTimeOffset.UtcNow.AddMinutes(-4));
         store.Upsert(completed);
         var viewModel = new MainViewModel(store);
-        viewModel.SelectCountUpCommand.Execute(null);
+        viewModel.SelectedModeIndex = (int)mode;
 
         Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         Assert.IsFalse(viewModel.HistoryItems[0].ShowStatus);
