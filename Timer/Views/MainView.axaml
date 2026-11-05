@@ -226,8 +226,13 @@
                   <Border Background="#F8F3EB" CornerRadius="14" Padding="10"
                           Margin="0,0,0,10">
                     <StackPanel Spacing="8">
-                      <TextBlock Text="{Binding ModeLabel}"
-                                 FontWeight="SemiBold" Foreground="#292D28" />
+                      <TextBox Text="{Binding Name, Mode=TwoWay}" PlaceholderText="{Binding ModeLabel}"
+                               MaxLength="80" AcceptsReturn="False"
+                               AutomationProperties.Name="Timer name" ToolTip.Tip="Rename timer"
+                               FontWeight="SemiBold" FontSize="14" Foreground="#292D28"
+                               Background="Transparent" BorderBrush="#DED5C8"
+                               BorderThickness="0,0,0,1" Padding="0,3" MinHeight="26"
+                               HorizontalContentAlignment="Left" />
                       <Grid ColumnDefinitions="*,Auto,Auto">
                         <TextBlock Grid.Column="0" Classes="muted" FontSize="10"
                                    Text="{Binding TimeAndDateLabel}" TextWrapping="NoWrap"

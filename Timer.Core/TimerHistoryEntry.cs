@@ -11,4 +11,5 @@ public sealed record TimerHistoryEntry(
     TimeSpan Work = default,
     TimeSpan Rest = default,
     int Rounds = 0,
-    DateTimeOffset? EndedAtUtc = null);
+    DateTimeOffset? EndedAtUtc = null,
+    string? Name = null);

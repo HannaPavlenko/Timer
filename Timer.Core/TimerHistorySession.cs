@@ -94,6 +94,22 @@ public sealed class TimerHistorySession
         _current = null;
     }
 
+    public void Rename(Guid id, string? name)
+    {
+        var entry = _store.Load().FirstOrDefault(item => item.Id == id);
+        if (entry is null)
+            return;
+
+        var normalized = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+        if (entry.Name == normalized)
+            return;
+
+        var renamed = entry with { Name = normalized };
+        _store.Upsert(renamed);
+        if (_current?.Id == id)
+            _current = _current with { Name = normalized };
+    }
+
     public bool Delete(Guid id)
     {
         var wasCurrent = _current?.Id == id;

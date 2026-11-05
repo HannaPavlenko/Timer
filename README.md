@@ -25,6 +25,8 @@ All modes support start, pause, resume, and reset. The duration fields accept up
 
 Each new timer started from the main controls is saved to local history, including its mode, settings, elapsed time, and final state. Each mode tab shows only its own history sorted by launch date and time, newest first. Restart updates the launch time and moves the same entry to its new chronological position; FIFO storage order stays unchanged. History remains after restarting the app, and each entry can be deleted. Running entries have a Stop button that ends the current session; paused and stopped entries have a Restart button that restarts the same entry from zero with its saved settings. A timer that was running when the app closed appears as stopped on the next launch. The active timer itself is not resumed after a restart.
 
+Edit the name at the top of any history card to name a timer (up to 80 characters). Names are saved automatically and kept when restarting a timer or reopening the app. An empty name shows the timer mode.
+
 History stores up to 10 entries across all modes. Adding a new entry removes the earliest inserted entry when the limit is reached (FIFO). Restarting an existing entry keeps its place in the queue.
 
 Completed Count up entries also offer Restart: the same row starts from zero and shows Stop while running.

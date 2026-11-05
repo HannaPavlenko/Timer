@@ -325,6 +325,10 @@ public partial class MainViewModel : ViewModelBase
 
     private void RestartHistoryEntry(TimerHistoryEntry entry)
     {
+        var savedEntry = _historyStore.Load().FirstOrDefault(item => item.Id == entry.Id);
+        if (savedEntry is null)
+            return;
+        entry = savedEntry;
         if (!CanRestartHistoryEntry(entry))
             return;
 
@@ -385,7 +389,7 @@ public partial class MainViewModel : ViewModelBase
                 HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry,
                     RestartHistoryEntry, StopHistoryEntry, CanRestartHistoryEntry(entries[index]),
                     entries[index].Status == TimerHistoryStatus.Running &&
-                    _history.CurrentEntryId == entries[index].Id));
+                    _history.CurrentEntryId == entries[index].Id, _history.Rename));
         }
         OnPropertyChanged(nameof(HasNoHistory));
     }

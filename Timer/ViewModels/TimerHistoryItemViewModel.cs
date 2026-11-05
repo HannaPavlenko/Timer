@@ -11,11 +11,16 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
 {
     private readonly string _startedLabel;
     private string _timeAndDateLabel = string.Empty;
+    private string _name;
+    private readonly Action<Guid, string> _rename;
 
     public TimerHistoryItemViewModel(TimerHistoryEntry entry, Action<Guid> delete,
-        Action<TimerHistoryEntry> restart, Action<Guid> stop, bool canRestart, bool canStop)
+        Action<TimerHistoryEntry> restart, Action<Guid> stop, bool canRestart, bool canStop,
+        Action<Guid, string> rename)
     {
         Id = entry.Id;
+        _rename = rename;
+        _name = entry.Name ?? string.Empty;
         ModeLabel = entry.Mode switch
         {
             TimerMode.Stopwatch => "Stopwatch",
@@ -50,6 +55,16 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
 
     public Guid Id { get; }
     public string ModeLabel { get; }
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            var name = value ?? string.Empty;
+            if (SetProperty(ref _name, name))
+                _rename(Id, name);
+        }
+    }
     public string StatusLabel { get; }
     public bool CanRestart { get; }
     public bool CanStop { get; }
