@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -377,7 +378,7 @@ public partial class MainViewModel : ViewModelBase
     private void ReloadHistory()
     {
         HistoryItems.Clear();
-        var entries = _historyStore.Load();
+        var entries = _historyStore.Load().OrderBy(entry => entry.StartedAtUtc).ToList();
         for (var index = 0; index < entries.Count; index++)
         {
             if (entries[index].Mode == _selectedMode)

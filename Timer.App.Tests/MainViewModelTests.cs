@@ -218,13 +218,13 @@ public sealed class MainViewModelTests
             Assert.IsTrue(store.Load()[0].StartedAtUtc > saved.StartedAtUtc);
             Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
             Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[0].Target);
-            Assert.AreEqual(saved.Id, viewModel.HistoryItems[0].Id);
-            Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
-            Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[1].Id);
-            Assert.IsTrue(viewModel.HistoryItems[1].CanRestart);
-            viewModel.HistoryItems[0].StopCommand.Execute(null);
-            Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+            Assert.AreEqual(saved.Id, viewModel.HistoryItems[1].Id);
+            Assert.IsTrue(viewModel.HistoryItems[1].CanStop);
+            Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[0].Id);
             Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+            viewModel.HistoryItems[1].StopCommand.Execute(null);
+            Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+            Assert.IsTrue(viewModel.HistoryItems[1].CanRestart);
         }
     }
 
@@ -344,6 +344,30 @@ public sealed class MainViewModelTests
         Assert.AreEqual("READY", viewModel.StatusLabel);
         Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         Assert.AreEqual(1, store.Load().Count);
+    }
+
+    [TestMethod]
+    public void EveryModeSortsByLaunchTimeWithoutChangingStorageOrder()
+    {
+        foreach (var mode in Enum.GetValues<TimerMode>())
+        {
+            var store = new MemoryHistoryStore();
+            var later = new TimerHistoryEntry(Guid.NewGuid(), mode,
+                new DateTimeOffset(2026, 11, 5, 20, 9, 0, TimeSpan.Zero),
+                TimerHistoryStatus.Stopped, TimeSpan.Zero);
+            var earlier = later with { Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddHours(-2) };
+            var previousDay = later with { Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddDays(-1) };
+            store.Upsert(later);
+            store.Upsert(earlier);
+            store.Upsert(previousDay);
+            var viewModel = new MainViewModel(store);
+            viewModel.SelectedModeIndex = (int)mode;
+
+            CollectionAssert.AreEqual(new[] { previousDay.Id, earlier.Id, later.Id },
+                viewModel.HistoryItems.Select(item => item.Id).ToArray());
+            CollectionAssert.AreEqual(new[] { later.Id, earlier.Id, previousDay.Id },
+                store.Load().Select(entry => entry.Id).ToArray());
+        }
     }
 
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
