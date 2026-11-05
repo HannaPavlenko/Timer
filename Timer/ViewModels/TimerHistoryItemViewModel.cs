@@ -8,7 +8,8 @@ namespace Timer.ViewModels;
 
 public sealed class TimerHistoryItemViewModel
 {
-    public TimerHistoryItemViewModel(TimerHistoryEntry entry, Action<Guid> delete)
+    public TimerHistoryItemViewModel(TimerHistoryEntry entry, Action<Guid> delete,
+        Action<TimerHistoryEntry> restart, bool canRestart)
     {
         Id = entry.Id;
         ModeLabel = entry.Mode switch
@@ -35,15 +36,21 @@ public sealed class TimerHistoryItemViewModel
             TimerMode.Intervals => $"Prepare {FormatTime(entry.Preparation)} · Work {FormatTime(entry.Work)} · Rest {FormatTime(entry.Rest)} · {entry.Rounds} rounds",
             _ => string.Empty
         };
+        CanRestart = canRestart;
+        ShowStatus = !CanRestart;
+        RestartCommand = new RelayCommand(() => restart(entry));
         DeleteCommand = new RelayCommand(() => delete(entry.Id));
     }
 
     public Guid Id { get; }
     public string ModeLabel { get; }
     public string StatusLabel { get; }
+    public bool CanRestart { get; }
+    public bool ShowStatus { get; }
     public string TimeAndDateLabel { get; }
     public string SettingsLabel { get; }
     public bool HasSettingsLabel => !string.IsNullOrEmpty(SettingsLabel);
+    public ICommand RestartCommand { get; }
     public ICommand DeleteCommand { get; }
 
     private static string FormatTime(TimeSpan time)

@@ -300,6 +300,53 @@ public partial class MainViewModel : ViewModelBase
             ReloadHistory();
     }
 
+    private void RestartHistoryEntry(TimerHistoryEntry entry)
+    {
+        if (!CanRestartHistoryEntry(entry))
+            return;
+
+        SelectMode(entry.Mode);
+        if (entry.Mode is TimerMode.CountUp or TimerMode.Countdown)
+        {
+            (DurationMinutes, DurationSeconds) = HistoryDurationFields(entry.Target!.Value);
+        }
+        else if (entry.Mode == TimerMode.Intervals)
+        {
+            (PreparationMinutes, PreparationSeconds) = HistoryDurationFields(entry.Preparation);
+            (WorkMinutes, WorkSeconds) = HistoryDurationFields(entry.Work);
+            (RestMinutes, RestSeconds) = HistoryDurationFields(entry.Rest);
+            Rounds = entry.Rounds.ToString(CultureInfo.InvariantCulture);
+        }
+
+        StartOrPause();
+    }
+
+    private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
+    {
+        if (entry.Status != TimerHistoryStatus.Stopped)
+            return false;
+
+        return entry.Mode switch
+        {
+            TimerMode.Stopwatch => true,
+            TimerMode.CountUp or TimerMode.Countdown => entry.Target is { } target &&
+                IsValidHistoryDuration(target),
+            TimerMode.Intervals => IsValidHistoryDuration(entry.Preparation, allowZero: true) &&
+                IsValidHistoryDuration(entry.Work) && IsValidHistoryDuration(entry.Rest) &&
+                entry.Rounds is >= 1 and <= 99,
+            _ => false
+        };
+    }
+
+    private static bool IsValidHistoryDuration(TimeSpan duration, bool allowZero = false) =>
+        duration >= (allowZero ? TimeSpan.Zero : TimeSpan.FromSeconds(1)) &&
+        duration <= TimeSpan.FromMinutes(999) + TimeSpan.FromSeconds(59) &&
+        duration.Ticks % TimeSpan.TicksPerSecond == 0;
+
+    private static (string Minutes, string Seconds) HistoryDurationFields(TimeSpan duration) =>
+        (((int)duration.TotalMinutes).ToString(CultureInfo.InvariantCulture),
+            duration.Seconds.ToString(CultureInfo.InvariantCulture));
+
     private void ReloadHistory()
     {
         HistoryItems.Clear();
@@ -307,7 +354,8 @@ public partial class MainViewModel : ViewModelBase
         for (var index = entries.Count - 1; index >= 0; index--)
         {
             if (entries[index].Mode == _selectedMode)
-                HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry));
+                HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry,
+                    RestartHistoryEntry, CanRestartHistoryEntry(entries[index])));
         }
         OnPropertyChanged(nameof(HasNoHistory));
     }
