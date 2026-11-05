@@ -27,6 +27,8 @@ Each new timer started from the main controls is saved to local history, includi
 
 History stores up to 10 entries across all modes. Adding a new entry removes the earliest inserted entry when the limit is reached (FIFO). Restarting an existing entry keeps its place in the queue.
 
+Completed Count up entries also offer Restart: the same row starts from zero and shows Stop while running.
+
 ## Build and run
 
 Install the .NET 10 SDK. Building for Android also requires the .NET Android workload and Android SDK. The Android target supports Android 6.0 (API 23) or later.

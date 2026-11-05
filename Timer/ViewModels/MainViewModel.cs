@@ -349,7 +349,8 @@ public partial class MainViewModel : ViewModelBase
 
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
     {
-        if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused))
+        if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused) &&
+            !(entry.Mode == TimerMode.CountUp && entry.Status == TimerHistoryStatus.Completed))
             return false;
 
         return entry.Mode switch

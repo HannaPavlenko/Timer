@@ -316,6 +316,36 @@ public sealed class MainViewModelTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
     }
 
+    [TestMethod]
+    public void CompletedCountUpRestartsAndStopsInTheSameRow()
+    {
+        var store = new MemoryHistoryStore();
+        var completed = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.CountUp,
+            DateTimeOffset.UtcNow.AddMinutes(-5), TimerHistoryStatus.Completed,
+            TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10),
+            EndedAtUtc: DateTimeOffset.UtcNow.AddMinutes(-4));
+        store.Upsert(completed);
+        var viewModel = new MainViewModel(store);
+        viewModel.SelectCountUpCommand.Execute(null);
+
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+        Assert.IsFalse(viewModel.HistoryItems[0].ShowStatus);
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual("10", viewModel.DurationSeconds);
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(completed.Id, viewModel.HistoryItems[0].Id);
+        Assert.AreEqual(TimeSpan.Zero, store.Load()[0].Elapsed);
+        Assert.IsNull(store.Load()[0].EndedAtUtc);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+        Assert.AreEqual("READY", viewModel.StatusLabel);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+        Assert.AreEqual(1, store.Load().Count);
+    }
+
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
     private sealed class MemoryHistoryStore : ITimerHistoryStore
