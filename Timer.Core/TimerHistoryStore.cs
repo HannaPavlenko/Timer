@@ -4,6 +4,7 @@ namespace Timer.Core;
 
 public sealed class TimerHistoryStore : ITimerHistoryStore
 {
+    private const int MaximumEntries = 15;
     private readonly string _filePath;
     private readonly object _sync = new();
 
@@ -18,7 +19,12 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
     public IReadOnlyList<TimerHistoryEntry> Load()
     {
         lock (_sync)
-            return ReadEntries();
+        {
+            var entries = ReadEntries();
+            if (TrimOldest(entries))
+                WriteEntries(entries);
+            return entries;
+        }
     }
 
     public void Upsert(TimerHistoryEntry entry)
@@ -32,6 +38,7 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
             else
                 entries[index] = entry;
 
+            TrimOldest(entries);
             WriteEntries(entries);
         }
     }
@@ -63,6 +70,15 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
         {
             throw new InvalidDataException("Timer history contains invalid JSON.", exception);
         }
+    }
+
+    private static bool TrimOldest(List<TimerHistoryEntry> entries)
+    {
+        if (entries.Count <= MaximumEntries)
+            return false;
+
+        entries.RemoveRange(0, entries.Count - MaximumEntries);
+        return true;
     }
 
     private void WriteEntries(List<TimerHistoryEntry> entries)

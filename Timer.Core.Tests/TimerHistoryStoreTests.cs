@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Timer.Core;
+using System.Text.Json;
 
 namespace Timer.Core.Tests;
 
@@ -65,6 +66,56 @@ public sealed class TimerHistoryStoreTests
 
             Assert.ThrowsExactly<InvalidDataException>(() => store.Upsert(NewEntry(TimerMode.Stopwatch)));
             Assert.AreEqual("{invalid json", File.ReadAllText(path));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void SixteenthEntryEvictsFirstEvenAfterRestart()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "history.json");
+        try
+        {
+            var store = new TimerHistoryStore(path);
+            var entries = Enumerable.Range(0, 15)
+                .Select(i => NewEntry((TimerMode)(i % 4))).ToArray();
+            foreach (var entry in entries)
+                store.Upsert(entry);
+            store.Upsert(entries[0] with { StartedAtUtc = DateTimeOffset.UtcNow });
+            Assert.AreEqual(15, store.Load().Count);
+            Assert.AreEqual(entries[0].Id, store.Load()[0].Id);
+
+            var next = NewEntry(TimerMode.Stopwatch);
+            store.Upsert(next);
+            var reopened = new TimerHistoryStore(path).Load();
+            CollectionAssert.AreEqual(entries.Skip(1).Append(next).Select(e => e.Id).ToArray(),
+                reopened.Select(e => e.Id).ToArray());
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void LoadingOlderHistoryPersistsOnlyLastFifteenEntries()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "history.json");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var entries = Enumerable.Range(0, 20).Select(_ => NewEntry(TimerMode.Stopwatch)).ToArray();
+            File.WriteAllText(path, JsonSerializer.Serialize(entries));
+            var loaded = new TimerHistoryStore(path).Load();
+            CollectionAssert.AreEqual(entries.Skip(5).ToArray(), loaded.ToArray());
+            Assert.AreEqual(15, JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(path))!.Count);
         }
         finally
         {
