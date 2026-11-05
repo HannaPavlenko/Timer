@@ -240,6 +240,17 @@ public partial class MainViewModel : ViewModelBase
         _status = snapshot.Status;
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
             ReloadHistory();
+        else if (snapshot.Status == TimerStatus.Running && _history.CurrentEntryId is { } currentId)
+        {
+            foreach (var item in HistoryItems)
+            {
+                if (item.Id != currentId)
+                    continue;
+
+                item.UpdateElapsed(snapshot.TotalElapsed);
+                break;
+            }
+        }
         if (_status == TimerStatus.Completed)
             _refreshTimer.Stop();
 
@@ -300,6 +311,12 @@ public partial class MainViewModel : ViewModelBase
             ReloadHistory();
     }
 
+    private void StopHistoryEntry(Guid id)
+    {
+        if (_status == TimerStatus.Running && _history.CurrentEntryId == id)
+            Reset();
+    }
+
     private void RestartHistoryEntry(TimerHistoryEntry entry)
     {
         if (!CanRestartHistoryEntry(entry))
@@ -355,7 +372,9 @@ public partial class MainViewModel : ViewModelBase
         {
             if (entries[index].Mode == _selectedMode)
                 HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry,
-                    RestartHistoryEntry, CanRestartHistoryEntry(entries[index])));
+                    RestartHistoryEntry, StopHistoryEntry, CanRestartHistoryEntry(entries[index]),
+                    entries[index].Status == TimerHistoryStatus.Running &&
+                    _history.CurrentEntryId == entries[index].Id));
         }
         OnPropertyChanged(nameof(HasNoHistory));
     }

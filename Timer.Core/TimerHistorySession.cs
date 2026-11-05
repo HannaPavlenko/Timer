@@ -5,6 +5,8 @@ public sealed class TimerHistorySession
     private readonly ITimerHistoryStore _store;
     private TimerHistoryEntry? _current;
 
+    public Guid? CurrentEntryId => _current?.Id;
+
     public TimerHistorySession(ITimerHistoryStore store)
     {
         _store = store;

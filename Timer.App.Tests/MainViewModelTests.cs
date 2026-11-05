@@ -280,6 +280,30 @@ public sealed class MainViewModelTests
         viewModel.ResetCommand.Execute(null);
     }
 
+    [TestMethod]
+    public void RunningHistoryStopEndsOnlyItsOwnTimer()
+    {
+        var store = new MemoryHistoryStore();
+        var viewModel = new MainViewModel(store);
+        viewModel.StartOrPauseCommand.Execute(null);
+        var first = viewModel.HistoryItems[0];
+        Assert.IsTrue(first.CanStop);
+        Assert.IsFalse(first.ShowStatus);
+
+        first.StopCommand.Execute(null);
+        Assert.AreEqual("READY", viewModel.StatusLabel);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+        Assert.IsNotNull(store.Load()[0].EndedAtUtc);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+
+        viewModel.StartOrPauseCommand.Execute(null);
+        first.StopCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[1].Status);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
+    }
+
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
     private sealed class MemoryHistoryStore : ITimerHistoryStore

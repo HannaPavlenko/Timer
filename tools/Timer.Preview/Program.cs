@@ -41,6 +41,8 @@ if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase
         TimeSpan.Zero, TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(15), 4));
 }
 var viewModel = new MainViewModel(previewStore);
+if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
+    viewModel.StartOrPauseCommand.Execute(null);
 if (verifyInput)
 {
     viewModel.SelectCountUpCommand.Execute(null);

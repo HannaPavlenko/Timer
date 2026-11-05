@@ -1,15 +1,19 @@
 using System;
 using System.Globalization;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Timer.Core;
 
 namespace Timer.ViewModels;
 
-public sealed class TimerHistoryItemViewModel
+public sealed class TimerHistoryItemViewModel : ObservableObject
 {
+    private readonly string _startedLabel;
+    private string _timeAndDateLabel = string.Empty;
+
     public TimerHistoryItemViewModel(TimerHistoryEntry entry, Action<Guid> delete,
-        Action<TimerHistoryEntry> restart, bool canRestart)
+        Action<TimerHistoryEntry> restart, Action<Guid> stop, bool canRestart, bool canStop)
     {
         Id = entry.Id;
         ModeLabel = entry.Mode switch
@@ -28,8 +32,8 @@ public sealed class TimerHistoryItemViewModel
             TimerHistoryStatus.Stopped => "Stopped",
             _ => throw new ArgumentOutOfRangeException(nameof(entry))
         };
-        var started = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
-        TimeAndDateLabel = $"{FormatTime(entry.Elapsed)} · {started}";
+        _startedLabel = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
+        UpdateElapsed(entry.Elapsed);
         SettingsLabel = entry.Mode switch
         {
             TimerMode.CountUp or TimerMode.Countdown => $"Target {FormatTime(entry.Target ?? TimeSpan.Zero)}",
@@ -37,8 +41,10 @@ public sealed class TimerHistoryItemViewModel
             _ => string.Empty
         };
         CanRestart = canRestart;
-        ShowStatus = !CanRestart;
+        CanStop = canStop;
+        ShowStatus = !CanRestart && !CanStop;
         RestartCommand = new RelayCommand(() => restart(entry));
+        StopCommand = new RelayCommand(() => stop(entry.Id));
         DeleteCommand = new RelayCommand(() => delete(entry.Id));
     }
 
@@ -46,12 +52,21 @@ public sealed class TimerHistoryItemViewModel
     public string ModeLabel { get; }
     public string StatusLabel { get; }
     public bool CanRestart { get; }
+    public bool CanStop { get; }
     public bool ShowStatus { get; }
-    public string TimeAndDateLabel { get; }
+    public string TimeAndDateLabel
+    {
+        get => _timeAndDateLabel;
+        private set => SetProperty(ref _timeAndDateLabel, value);
+    }
     public string SettingsLabel { get; }
     public bool HasSettingsLabel => !string.IsNullOrEmpty(SettingsLabel);
     public ICommand RestartCommand { get; }
+    public ICommand StopCommand { get; }
     public ICommand DeleteCommand { get; }
+
+    public void UpdateElapsed(TimeSpan elapsed) =>
+        TimeAndDateLabel = $"{FormatTime(elapsed)} · {_startedLabel}";
 
     private static string FormatTime(TimeSpan time)
     {
