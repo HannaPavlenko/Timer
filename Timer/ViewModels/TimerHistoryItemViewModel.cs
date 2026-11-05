@@ -27,7 +27,7 @@ public sealed class TimerHistoryItemViewModel
             TimerHistoryStatus.Stopped => "Stopped",
             _ => throw new ArgumentOutOfRangeException(nameof(entry))
         };
-        StartedLabel = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
+        StartedLabel = entry.StartedAtUtc.ToLocalTime().ToString("HH:mm · MMM d, yyyy", CultureInfo.InvariantCulture);
         SettingsLabel = entry.Mode switch
         {
             TimerMode.CountUp or TimerMode.Countdown => $"Target {FormatTime(entry.Target ?? TimeSpan.Zero)}",

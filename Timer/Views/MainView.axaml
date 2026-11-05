@@ -234,7 +234,7 @@
                           <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
                         </Border>
                       </Grid>
-                      <TextBlock Classes="muted" Text="{Binding StartedLabel}" />
+                      <TextBlock Classes="muted" Text="{Binding StartedLabel}" TextWrapping="NoWrap" />
                       <TextBlock Classes="muted" Text="{Binding SettingsLabel}"
                                  TextWrapping="Wrap" />
                       <Grid ColumnDefinitions="*,Auto">
