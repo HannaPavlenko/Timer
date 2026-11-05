@@ -378,7 +378,7 @@ public partial class MainViewModel : ViewModelBase
     private void ReloadHistory()
     {
         HistoryItems.Clear();
-        var entries = _historyStore.Load().OrderBy(entry => entry.StartedAtUtc).ToList();
+        var entries = _historyStore.Load().OrderByDescending(entry => entry.StartedAtUtc).ToList();
         for (var index = 0; index < entries.Count; index++)
         {
             if (entries[index].Mode == _selectedMode)

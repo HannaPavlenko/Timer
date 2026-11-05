@@ -207,7 +207,7 @@ public sealed class MainViewModelTests
             viewModel.DurationSeconds = "20";
             viewModel.StartOrPauseCommand.Execute(null);
 
-            viewModel.HistoryItems[0].RestartCommand.Execute(null);
+            viewModel.HistoryItems[1].RestartCommand.Execute(null);
 
             Assert.AreEqual("RUNNING", viewModel.StatusLabel);
             Assert.AreEqual("6", viewModel.DurationSeconds);
@@ -218,13 +218,13 @@ public sealed class MainViewModelTests
             Assert.IsTrue(store.Load()[0].StartedAtUtc > saved.StartedAtUtc);
             Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
             Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[0].Target);
-            Assert.AreEqual(saved.Id, viewModel.HistoryItems[1].Id);
-            Assert.IsTrue(viewModel.HistoryItems[1].CanStop);
-            Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[0].Id);
-            Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
-            viewModel.HistoryItems[1].StopCommand.Execute(null);
-            Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+            Assert.AreEqual(saved.Id, viewModel.HistoryItems[0].Id);
+            Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+            Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[1].Id);
             Assert.IsTrue(viewModel.HistoryItems[1].CanRestart);
+            viewModel.HistoryItems[0].StopCommand.Execute(null);
+            Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+            Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         }
     }
 
@@ -312,7 +312,7 @@ public sealed class MainViewModelTests
         first.StopCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
         Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[1].Status);
-        viewModel.HistoryItems[1].StopCommand.Execute(null);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
     }
 
@@ -347,7 +347,7 @@ public sealed class MainViewModelTests
     }
 
     [TestMethod]
-    public void EveryModeSortsByLaunchTimeWithoutChangingStorageOrder()
+    public void EveryModeShowsNewestLaunchFirstWithoutChangingStorageOrder()
     {
         foreach (var mode in Enum.GetValues<TimerMode>())
         {
@@ -363,7 +363,7 @@ public sealed class MainViewModelTests
             var viewModel = new MainViewModel(store);
             viewModel.SelectedModeIndex = (int)mode;
 
-            CollectionAssert.AreEqual(new[] { previousDay.Id, earlier.Id, later.Id },
+            CollectionAssert.AreEqual(new[] { later.Id, earlier.Id, previousDay.Id },
                 viewModel.HistoryItems.Select(item => item.Id).ToArray());
             CollectionAssert.AreEqual(new[] { later.Id, earlier.Id, previousDay.Id },
                 store.Load().Select(entry => entry.Id).ToArray());
