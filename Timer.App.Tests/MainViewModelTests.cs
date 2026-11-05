@@ -153,6 +153,8 @@ public sealed class MainViewModelTests
         Assert.AreEqual("Target 00:06", viewModel.HistoryItems[0].SettingsLabel);
 
         var reopened = new MainViewModel(store);
+        Assert.IsTrue(reopened.HasNoHistory);
+        reopened.SelectCountUpCommand.Execute(null);
         Assert.AreEqual("Stopped", reopened.HistoryItems[0].StatusLabel);
         reopened.HistoryItems[0].DeleteCommand.Execute(null);
         Assert.IsTrue(reopened.HasNoHistory);
@@ -161,6 +163,33 @@ public sealed class MainViewModelTests
         viewModel.HistoryItems[0].DeleteCommand.Execute(null);
         viewModel.ResetCommand.Execute(null);
         Assert.AreEqual(0, store.Load().Count);
+    }
+
+    [TestMethod]
+    public void HistoryShowsOnlyTheSelectedModeAndKeepsOtherModesAfterDeletion()
+    {
+        var store = new MemoryHistoryStore();
+        foreach (var mode in Enum.GetValues<TimerMode>())
+            store.Upsert(new TimerHistoryEntry(
+                Guid.NewGuid(), mode, DateTimeOffset.UtcNow,
+                TimerHistoryStatus.Stopped, TimeSpan.FromSeconds(2)));
+
+        var viewModel = new MainViewModel(store);
+        Assert.AreEqual(1, viewModel.HistoryItems.Count);
+        Assert.AreEqual("Stopwatch", viewModel.HistoryItems[0].ModeLabel);
+
+        viewModel.SelectCountUpCommand.Execute(null);
+        Assert.AreEqual("Count up", viewModel.HistoryItems[0].ModeLabel);
+        viewModel.HistoryItems[0].DeleteCommand.Execute(null);
+        Assert.IsTrue(viewModel.HasNoHistory);
+
+        viewModel.SelectCountdownCommand.Execute(null);
+        Assert.AreEqual("Countdown", viewModel.HistoryItems[0].ModeLabel);
+        viewModel.SelectIntervalsCommand.Execute(null);
+        Assert.AreEqual("Intervals", viewModel.HistoryItems[0].ModeLabel);
+        viewModel.SelectStopwatchCommand.Execute(null);
+        Assert.AreEqual("Stopwatch", viewModel.HistoryItems[0].ModeLabel);
+        Assert.AreEqual(3, store.Load().Count);
     }
 
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());

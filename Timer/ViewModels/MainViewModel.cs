@@ -27,7 +27,6 @@ public partial class MainViewModel : ViewModelBase
     {
         _historyStore = historyStore;
         _history = new TimerHistorySession(historyStore);
-        ReloadHistory();
         _countUpDuration = (DurationMinutes, DurationSeconds);
         _countdownDuration = (DurationMinutes, DurationSeconds);
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -140,7 +139,6 @@ public partial class MainViewModel : ViewModelBase
     {
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
-        ReloadHistory();
         if (_selectedMode == TimerMode.CountUp)
             _countUpDuration = (DurationMinutes, DurationSeconds);
         else if (_selectedMode == TimerMode.Countdown)
@@ -171,6 +169,7 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDurationMode));
         OnPropertyChanged(nameof(CanEditSettings));
         PrepareMode();
+        ReloadHistory();
     }
 
     private void RefreshReadyPreview()
@@ -306,7 +305,10 @@ public partial class MainViewModel : ViewModelBase
         HistoryItems.Clear();
         var entries = _historyStore.Load();
         for (var index = entries.Count - 1; index >= 0; index--)
-            HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry));
+        {
+            if (entries[index].Mode == _selectedMode)
+                HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry));
+        }
         OnPropertyChanged(nameof(HasNoHistory));
     }
 

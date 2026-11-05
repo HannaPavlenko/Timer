@@ -27,6 +27,9 @@ var previewStore = new PreviewHistoryStore();
 if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
 {
     previewStore.Upsert(new TimerHistoryEntry(
+        Guid.NewGuid(), TimerMode.Stopwatch, DateTimeOffset.UtcNow.AddMinutes(-10),
+        TimerHistoryStatus.Stopped, TimeSpan.FromMinutes(3)));
+    previewStore.Upsert(new TimerHistoryEntry(
         Guid.NewGuid(), TimerMode.CountUp, DateTimeOffset.UtcNow.AddHours(-2),
         TimerHistoryStatus.Completed, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5)));
     previewStore.Upsert(new TimerHistoryEntry(
