@@ -10,6 +10,7 @@ namespace Timer.ViewModels;
 public sealed class TimerHistoryItemViewModel : ObservableObject
 {
     private readonly string _startedLabel;
+    private readonly TimeSpan? _target;
     private string _timeAndDateLabel = string.Empty;
     private string _name;
     private readonly Action<Guid, string> _rename;
@@ -21,6 +22,9 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
         Id = entry.Id;
         _rename = rename;
         _name = entry.Name ?? string.Empty;
+        _target = entry.Mode is TimerMode.CountUp or TimerMode.Countdown
+            ? entry.Target ?? TimeSpan.Zero
+            : null;
         ModeLabel = entry.Mode switch
         {
             TimerMode.Stopwatch => "Stopwatch",
@@ -41,7 +45,6 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
         UpdateElapsed(entry.Elapsed);
         SettingsLabel = entry.Mode switch
         {
-            TimerMode.CountUp or TimerMode.Countdown => $"Target {FormatTime(entry.Target ?? TimeSpan.Zero)}",
             TimerMode.Intervals => $"Prepare {FormatTime(entry.Preparation)} · Work {FormatTime(entry.Work)} · Rest {FormatTime(entry.Rest)} · {entry.Rounds} rounds",
             _ => string.Empty
         };
@@ -81,7 +84,7 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
     public ICommand DeleteCommand { get; }
 
     public void UpdateElapsed(TimeSpan elapsed) =>
-        TimeAndDateLabel = $"{FormatTime(elapsed)} · {_startedLabel}";
+        TimeAndDateLabel = $"{FormatTime(_target ?? elapsed)} · {_startedLabel}";
 
     private static string FormatTime(TimeSpan time)
     {
