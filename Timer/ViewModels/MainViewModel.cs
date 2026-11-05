@@ -354,6 +354,11 @@ public partial class MainViewModel : ViewModelBase
 
         _history.Restart(entry);
         BeginRunning();
+        if (IsDurationMode)
+        {
+            DurationMinutes = "0";
+            DurationSeconds = "0";
+        }
     }
 
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)

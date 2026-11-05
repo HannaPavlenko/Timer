@@ -211,7 +211,7 @@ public sealed class MainViewModelTests
             viewModel.HistoryItems[1].RestartCommand.Execute(null);
 
             Assert.AreEqual("RUNNING", viewModel.StatusLabel);
-            Assert.AreEqual("6", viewModel.DurationSeconds);
+            Assert.AreEqual("0", viewModel.DurationSeconds);
             Assert.AreEqual(2, store.Load().Count);
             Assert.AreEqual(saved.Id, store.Load()[0].Id);
             Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[0].Status);
@@ -336,7 +336,7 @@ public sealed class MainViewModelTests
         viewModel.HistoryItems[0].RestartCommand.Execute(null);
 
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
-        Assert.AreEqual("10", viewModel.DurationSeconds);
+        Assert.AreEqual("0", viewModel.DurationSeconds);
         Assert.AreEqual(1, store.Load().Count);
         Assert.AreEqual(completed.Id, viewModel.HistoryItems[0].Id);
         Assert.AreEqual(TimeSpan.Zero, store.Load()[0].Elapsed);
@@ -398,7 +398,10 @@ public sealed class MainViewModelTests
             Assert.AreEqual("0", viewModel.DurationSeconds);
 
             viewModel.HistoryItems[0].RestartCommand.Execute(null);
-            Assert.AreEqual("15", viewModel.DurationSeconds);
+            Assert.AreEqual("0", viewModel.DurationSeconds);
+            Assert.AreEqual("0", viewModel.DurationMinutes);
+            StringAssert.Contains(viewModel.DetailLabel, "01:15");
+            Assert.AreEqual(TimeSpan.FromSeconds(75), store.Load()[0].Target);
             Assert.AreEqual("RUNNING", viewModel.StatusLabel);
             viewModel.HistoryItems[0].StopCommand.Execute(null);
             Assert.AreEqual("0", viewModel.DurationSeconds);
