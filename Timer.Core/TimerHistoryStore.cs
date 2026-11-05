@@ -4,7 +4,7 @@ namespace Timer.Core;
 
 public sealed class TimerHistoryStore : ITimerHistoryStore
 {
-    private const int MaximumEntries = 15;
+    private const int MaximumEntries = 10;
     private readonly string _filePath;
     private readonly object _sync = new();
 

@@ -75,19 +75,19 @@ public sealed class TimerHistoryStoreTests
     }
 
     [TestMethod]
-    public void SixteenthEntryEvictsFirstEvenAfterRestart()
+    public void EleventhEntryEvictsFirstEvenAfterRestart()
     {
         var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
         var path = Path.Combine(directory, "history.json");
         try
         {
             var store = new TimerHistoryStore(path);
-            var entries = Enumerable.Range(0, 15)
+            var entries = Enumerable.Range(0, 10)
                 .Select(i => NewEntry((TimerMode)(i % 4))).ToArray();
             foreach (var entry in entries)
                 store.Upsert(entry);
             store.Upsert(entries[0] with { StartedAtUtc = DateTimeOffset.UtcNow });
-            Assert.AreEqual(15, store.Load().Count);
+            Assert.AreEqual(10, store.Load().Count);
             Assert.AreEqual(entries[0].Id, store.Load()[0].Id);
 
             var next = NewEntry(TimerMode.Stopwatch);
@@ -104,7 +104,7 @@ public sealed class TimerHistoryStoreTests
     }
 
     [TestMethod]
-    public void LoadingOlderHistoryPersistsOnlyLastFifteenEntries()
+    public void LoadingOlderHistoryPersistsOnlyLastTenEntries()
     {
         var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
         var path = Path.Combine(directory, "history.json");
@@ -114,8 +114,8 @@ public sealed class TimerHistoryStoreTests
             var entries = Enumerable.Range(0, 20).Select(_ => NewEntry(TimerMode.Stopwatch)).ToArray();
             File.WriteAllText(path, JsonSerializer.Serialize(entries));
             var loaded = new TimerHistoryStore(path).Load();
-            CollectionAssert.AreEqual(entries.Skip(5).ToArray(), loaded.ToArray());
-            Assert.AreEqual(15, JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(path))!.Count);
+            CollectionAssert.AreEqual(entries.Skip(10).ToArray(), loaded.ToArray());
+            Assert.AreEqual(10, JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(path))!.Count);
         }
         finally
         {
