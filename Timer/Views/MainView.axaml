@@ -234,16 +234,13 @@
                           <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
                         </Border>
                       </Grid>
+                      <TextBlock Classes="muted" Text="{Binding ElapsedLabel}" />
                       <TextBlock Classes="muted" Text="{Binding StartedLabel}" TextWrapping="NoWrap" />
                       <TextBlock Classes="muted" Text="{Binding SettingsLabel}"
-                                 TextWrapping="Wrap" />
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Classes="muted" Text="{Binding ElapsedLabel}"
-                                   VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Classes="secondary" Content="Delete"
-                                Command="{Binding DeleteCommand}" Padding="12,7"
-                                FontSize="12" CornerRadius="9" />
-                      </Grid>
+                                 IsVisible="{Binding HasSettingsLabel}" TextWrapping="Wrap" />
+                      <Button Classes="secondary" Content="Delete" HorizontalAlignment="Right"
+                              Command="{Binding DeleteCommand}" Padding="12,7"
+                              FontSize="12" CornerRadius="9" />
                     </StackPanel>
                   </Border>
                 </DataTemplate>

@@ -27,7 +27,7 @@ public sealed class TimerHistoryItemViewModel
             TimerHistoryStatus.Stopped => "Stopped",
             _ => throw new ArgumentOutOfRangeException(nameof(entry))
         };
-        StartedLabel = entry.StartedAtUtc.ToLocalTime().ToString("HH:mm · MMM d, yyyy", CultureInfo.InvariantCulture);
+        StartedLabel = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
         SettingsLabel = entry.Mode switch
         {
             TimerMode.CountUp or TimerMode.Countdown => $"Target {FormatTime(entry.Target ?? TimeSpan.Zero)}",
@@ -43,6 +43,7 @@ public sealed class TimerHistoryItemViewModel
     public string StatusLabel { get; }
     public string StartedLabel { get; }
     public string SettingsLabel { get; }
+    public bool HasSettingsLabel => !string.IsNullOrEmpty(SettingsLabel);
     public string ElapsedLabel { get; }
     public ICommand DeleteCommand { get; }
 
