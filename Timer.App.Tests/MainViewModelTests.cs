@@ -255,6 +255,31 @@ public sealed class MainViewModelTests
         viewModel.ResetCommand.Execute(null);
     }
 
+    [TestMethod]
+    public void PausedHistoryShowsRestartAndStartsANewTimer()
+    {
+        var store = new MemoryHistoryStore();
+        var viewModel = new MainViewModel(store);
+        viewModel.SelectCountUpCommand.Execute(null);
+        viewModel.DurationSeconds = "6";
+        viewModel.StartOrPauseCommand.Execute(null);
+        viewModel.StartOrPauseCommand.Execute(null);
+
+        var paused = viewModel.HistoryItems[0];
+        Assert.IsTrue(paused.CanRestart);
+        Assert.IsFalse(paused.ShowStatus);
+        Assert.AreEqual(TimerHistoryStatus.Paused, store.Load()[0].Status);
+        paused.RestartCommand.Execute(null);
+
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual(2, store.Load().Count);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+        Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[1].Status);
+        Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[1].Target);
+        Assert.AreNotEqual(store.Load()[0].Id, store.Load()[1].Id);
+        viewModel.ResetCommand.Execute(null);
+    }
+
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
     private sealed class MemoryHistoryStore : ITimerHistoryStore

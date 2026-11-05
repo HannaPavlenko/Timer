@@ -323,7 +323,7 @@ public partial class MainViewModel : ViewModelBase
 
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
     {
-        if (entry.Status != TimerHistoryStatus.Stopped)
+        if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused))
             return false;
 
         return entry.Mode switch
