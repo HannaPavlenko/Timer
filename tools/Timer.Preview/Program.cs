@@ -42,7 +42,10 @@ if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase
 }
 var viewModel = new MainViewModel(previewStore);
 if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
+{
     viewModel.StartOrPauseCommand.Execute(null);
+    viewModel.HistoryItems[0].RestartCommand.Execute(null);
+}
 if (verifyInput)
 {
     viewModel.SelectCountUpCommand.Execute(null);

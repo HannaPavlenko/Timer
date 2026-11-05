@@ -30,6 +30,24 @@ public sealed class TimerHistorySession
         _current = entry;
     }
 
+    public void Restart(TimerHistoryEntry entry)
+    {
+        if (_current is not null)
+            throw new InvalidOperationException("Stop the current history entry before restarting another.");
+        if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused))
+            throw new ArgumentException("Only paused or stopped entries can restart.", nameof(entry));
+
+        var restarted = entry with
+        {
+            StartedAtUtc = DateTimeOffset.UtcNow,
+            Status = TimerHistoryStatus.Running,
+            Elapsed = TimeSpan.Zero,
+            EndedAtUtc = null
+        };
+        _store.Upsert(restarted);
+        _current = restarted;
+    }
+
     public void Update(TimerSnapshot snapshot)
     {
         if (_current is null)

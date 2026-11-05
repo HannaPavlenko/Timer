@@ -23,7 +23,7 @@ These images were rendered from the real Avalonia view with the headless Skia re
 
 All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. Preparation runs once before the first work interval; set it to 0:00 to skip it. The engine uses monotonic timestamps, so a delayed screen refresh does not change the measured time.
 
-Each timer launch is saved to local history, including its mode, settings, elapsed time, and final state. Each mode tab shows only its own history in launch order, with the oldest entry first. History remains after restarting the app, and each entry can be deleted. Running entries have a Stop button that ends the current session; paused and stopped entries have a Restart button that starts a new timer with the saved settings. A timer that was running when the app closed appears as stopped on the next launch. The active timer itself is not resumed after a restart.
+Each new timer started from the main controls is saved to local history, including its mode, settings, elapsed time, and final state. Each mode tab shows only its own history, and entries keep their positions when restarted. History remains after restarting the app, and each entry can be deleted. Running entries have a Stop button that ends the current session; paused and stopped entries have a Restart button that restarts the same entry from zero with its saved settings. A timer that was running when the app closed appears as stopped on the next launch. The active timer itself is not resumed after a restart.
 
 ## Build and run
 

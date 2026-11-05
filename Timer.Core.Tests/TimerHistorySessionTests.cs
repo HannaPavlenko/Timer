@@ -72,6 +72,36 @@ public sealed class TimerHistorySessionTests
         Assert.AreEqual(0, store.Load().Count);
     }
 
+    [TestMethod]
+    public void RestartResetsAndReusesTheSameEntry()
+    {
+        var store = new MemoryStore();
+        var history = new TimerHistorySession(store);
+        var previous = NewEntry() with
+        {
+            StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
+            Status = TimerHistoryStatus.Stopped,
+            Elapsed = TimeSpan.FromSeconds(4),
+            EndedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-4)
+        };
+        store.Upsert(previous);
+
+        history.Restart(previous);
+
+        var running = store.Load()[0];
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(previous.Id, running.Id);
+        Assert.AreEqual(TimerHistoryStatus.Running, running.Status);
+        Assert.AreEqual(TimeSpan.Zero, running.Elapsed);
+        Assert.IsNull(running.EndedAtUtc);
+        Assert.IsTrue(running.StartedAtUtc > previous.StartedAtUtc);
+        Assert.AreEqual(previous.Id, history.CurrentEntryId);
+
+        history.Stop(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(2)));
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+    }
+
     private static TimerHistoryEntry NewEntry() => new(
         Guid.NewGuid(), TimerMode.CountUp, DateTimeOffset.UtcNow,
         TimerHistoryStatus.Running, TimeSpan.Zero, TimeSpan.FromSeconds(6));

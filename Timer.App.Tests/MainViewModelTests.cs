@@ -193,7 +193,7 @@ public sealed class MainViewModelTests
     }
 
     [TestMethod]
-    public void RestartUsesSavedTargetAndCreatesANewHistoryEntry()
+    public void RestartUsesSavedTargetAndReusesHistoryEntry()
     {
         foreach (var mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
         {
@@ -211,17 +211,20 @@ public sealed class MainViewModelTests
 
             Assert.AreEqual("RUNNING", viewModel.StatusLabel);
             Assert.AreEqual("6", viewModel.DurationSeconds);
-            Assert.AreEqual(3, store.Load().Count);
-            Assert.AreEqual(saved, store.Load()[0]);
+            Assert.AreEqual(2, store.Load().Count);
+            Assert.AreEqual(saved.Id, store.Load()[0].Id);
+            Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[0].Status);
+            Assert.AreEqual(TimeSpan.Zero, store.Load()[0].Elapsed);
+            Assert.IsTrue(store.Load()[0].StartedAtUtc > saved.StartedAtUtc);
             Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[1].Status);
-            Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[2].Target);
-            Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[2].Status);
-            Assert.AreNotEqual(saved.Id, store.Load()[2].Id);
+            Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[0].Target);
+            Assert.AreEqual(saved.Id, viewModel.HistoryItems[0].Id);
+            Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
             Assert.AreEqual(store.Load()[1].Id, viewModel.HistoryItems[1].Id);
             Assert.IsTrue(viewModel.HistoryItems[1].CanRestart);
-            Assert.AreEqual(store.Load()[2].Id, viewModel.HistoryItems[2].Id);
-            Assert.IsTrue(viewModel.HistoryItems[2].CanStop);
-            viewModel.ResetCommand.Execute(null);
+            viewModel.HistoryItems[0].StopCommand.Execute(null);
+            Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+            Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         }
     }
 
@@ -249,18 +252,20 @@ public sealed class MainViewModelTests
         Assert.AreEqual("45", viewModel.WorkSeconds);
         Assert.AreEqual("15", viewModel.RestSeconds);
         Assert.AreEqual("4", viewModel.Rounds);
-        Assert.AreEqual(4, store.Load().Count);
-        var restarted = store.Load()[3];
+        Assert.AreEqual(2, store.Load().Count);
+        var restarted = store.Load()[1];
         Assert.AreEqual(TimerMode.Intervals, restarted.Mode);
         Assert.AreEqual(TimeSpan.FromSeconds(10), restarted.Preparation);
         Assert.AreEqual(TimeSpan.FromSeconds(45), restarted.Work);
         Assert.AreEqual(TimeSpan.FromSeconds(15), restarted.Rest);
         Assert.AreEqual(4, restarted.Rounds);
-        viewModel.ResetCommand.Execute(null);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
     }
 
     [TestMethod]
-    public void PausedHistoryShowsRestartAndStartsANewTimer()
+    public void PausedHistoryRestartUsesTheSameEntry()
     {
         var store = new MemoryHistoryStore();
         var viewModel = new MainViewModel(store);
@@ -276,12 +281,15 @@ public sealed class MainViewModelTests
         paused.RestartCommand.Execute(null);
 
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
-        Assert.AreEqual(2, store.Load().Count);
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(paused.Id, store.Load()[0].Id);
+        Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[0].Status);
+        Assert.AreEqual(TimeSpan.Zero, store.Load()[0].Elapsed);
+        Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[0].Target);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
-        Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[1].Status);
-        Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[1].Target);
-        Assert.AreNotEqual(store.Load()[0].Id, store.Load()[1].Id);
-        viewModel.ResetCommand.Execute(null);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
     }
 
     [TestMethod]

@@ -109,6 +109,11 @@ public partial class MainViewModel : ViewModelBase
         if (_status != TimerStatus.Paused)
             _history.StartNew(CreateHistoryEntry(_engine.Update()));
 
+        BeginRunning();
+    }
+
+    private void BeginRunning()
+    {
         _engine.Start();
         _refreshTimer.Start();
         Refresh();
@@ -335,7 +340,11 @@ public partial class MainViewModel : ViewModelBase
             Rounds = entry.Rounds.ToString(CultureInfo.InvariantCulture);
         }
 
-        StartOrPause();
+        if (!TryConfigure())
+            return;
+
+        _history.Restart(entry);
+        BeginRunning();
     }
 
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
