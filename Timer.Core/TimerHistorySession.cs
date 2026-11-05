@@ -72,4 +72,13 @@ public sealed class TimerHistorySession
         _store.Upsert(_current);
         _current = null;
     }
+
+    public bool Delete(Guid id)
+    {
+        var wasCurrent = _current?.Id == id;
+        if (wasCurrent)
+            _current = null;
+        var deleted = _store.Delete(id);
+        return deleted || wasCurrent;
+    }
 }

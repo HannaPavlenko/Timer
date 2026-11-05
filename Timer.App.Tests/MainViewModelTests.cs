@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Avalonia.Controls;
 using Timer.Controls;
 using Timer.ViewModels;
+using Timer.Core;
 
 namespace Timer.App.Tests;
 
@@ -22,7 +23,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void CountdownShowsPresetAndRejectsInvalidSeconds()
     {
-        var viewModel = new MainViewModel();
+        var viewModel = CreateViewModel();
         viewModel.SelectCountdownCommand.Execute(null);
         viewModel.DurationMinutes = "5";
 
@@ -41,7 +42,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void StartPauseResumeAndResetUpdateControls()
     {
-        var viewModel = new MainViewModel();
+        var viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "0";
         viewModel.DurationSeconds = "5";
@@ -67,7 +68,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void SwitchingModesResetsTheSession()
     {
-        var viewModel = new MainViewModel();
+        var viewModel = CreateViewModel();
         Assert.IsFalse(viewModel.HasDetailLabel);
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
@@ -93,7 +94,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void CountUpAndCountdownKeepSeparateTargets()
     {
-        var viewModel = new MainViewModel();
+        var viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "1";
         viewModel.DurationSeconds = "20";
@@ -117,7 +118,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void SixSecondsStartsWithEmptyMinutesInBothDurationModes()
     {
-        var viewModel = new MainViewModel();
+        var viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "";
         viewModel.DurationSeconds = "6";
@@ -135,5 +136,50 @@ public sealed class MainViewModelTests
         Assert.AreEqual("00:06", viewModel.DisplayTime);
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+    }
+
+    [TestMethod]
+    public void HistoryPersistsAcrossViewModelsAndDeleteRemovesAnActiveEntry()
+    {
+        var store = new MemoryHistoryStore();
+        var viewModel = new MainViewModel(store);
+        Assert.IsTrue(viewModel.HasNoHistory);
+
+        viewModel.SelectCountUpCommand.Execute(null);
+        viewModel.DurationSeconds = "6";
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual(1, viewModel.HistoryItems.Count);
+        Assert.AreEqual("Count up", viewModel.HistoryItems[0].ModeLabel);
+        Assert.AreEqual("Target 00:06", viewModel.HistoryItems[0].SettingsLabel);
+
+        var reopened = new MainViewModel(store);
+        Assert.AreEqual("Stopped", reopened.HistoryItems[0].StatusLabel);
+        reopened.HistoryItems[0].DeleteCommand.Execute(null);
+        Assert.IsTrue(reopened.HasNoHistory);
+        Assert.AreEqual(0, store.Load().Count);
+
+        viewModel.HistoryItems[0].DeleteCommand.Execute(null);
+        viewModel.ResetCommand.Execute(null);
+        Assert.AreEqual(0, store.Load().Count);
+    }
+
+    private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
+
+    private sealed class MemoryHistoryStore : ITimerHistoryStore
+    {
+        private readonly List<TimerHistoryEntry> _entries = [];
+
+        public IReadOnlyList<TimerHistoryEntry> Load() => _entries.ToArray();
+
+        public void Upsert(TimerHistoryEntry entry)
+        {
+            var index = _entries.FindIndex(existing => existing.Id == entry.Id);
+            if (index < 0)
+                _entries.Add(entry);
+            else
+                _entries[index] = entry;
+        }
+
+        public bool Delete(Guid id) => _entries.RemoveAll(entry => entry.Id == id) > 0;
     }
 }

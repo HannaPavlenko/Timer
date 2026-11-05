@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,15 +11,23 @@ namespace Timer.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly TimerEngine _engine = new();
-    private readonly TimerHistorySession _history = new(new TimerHistoryStore());
+    private readonly ITimerHistoryStore _historyStore;
+    private readonly TimerHistorySession _history;
     private readonly DispatcherTimer _refreshTimer;
     private TimerMode _selectedMode;
     private TimerStatus _status = TimerStatus.Ready;
     private (string Minutes, string Seconds) _countUpDuration;
     private (string Minutes, string Seconds) _countdownDuration;
 
-    public MainViewModel()
+    public MainViewModel() : this(new TimerHistoryStore())
     {
+    }
+
+    public MainViewModel(ITimerHistoryStore historyStore)
+    {
+        _historyStore = historyStore;
+        _history = new TimerHistorySession(historyStore);
+        ReloadHistory();
         _countUpDuration = (DurationMinutes, DurationSeconds);
         _countdownDuration = (DurationMinutes, DurationSeconds);
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -41,6 +50,8 @@ public partial class MainViewModel : ViewModelBase
     public bool IsIntervalsSelected => _selectedMode == TimerMode.Intervals;
     public bool IsDurationMode => _selectedMode is TimerMode.CountUp or TimerMode.Countdown;
     public bool CanEditSettings => _status is TimerStatus.Ready or TimerStatus.Completed;
+    public ObservableCollection<TimerHistoryItemViewModel> HistoryItems { get; } = [];
+    public bool HasNoHistory => HistoryItems.Count == 0;
 
     [ObservableProperty] private string _durationMinutes = "0";
     [ObservableProperty] private string _durationSeconds = "0";
@@ -89,6 +100,7 @@ public partial class MainViewModel : ViewModelBase
             _engine.Pause();
             _refreshTimer.Stop();
             Refresh();
+            ReloadHistory();
             return;
         }
 
@@ -101,6 +113,7 @@ public partial class MainViewModel : ViewModelBase
         _engine.Start();
         _refreshTimer.Start();
         Refresh();
+        ReloadHistory();
     }
 
     [RelayCommand]
@@ -108,6 +121,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
+        ReloadHistory();
         _engine.Reset();
         _status = TimerStatus.Ready;
         PrepareMode();
@@ -126,6 +140,7 @@ public partial class MainViewModel : ViewModelBase
     {
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
+        ReloadHistory();
         if (_selectedMode == TimerMode.CountUp)
             _countUpDuration = (DurationMinutes, DurationSeconds);
         else if (_selectedMode == TimerMode.Countdown)
@@ -220,9 +235,12 @@ public partial class MainViewModel : ViewModelBase
 
     private void Refresh()
     {
+        var previousStatus = _status;
         var snapshot = _engine.Update();
         _history.Update(snapshot);
         _status = snapshot.Status;
+        if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
+            ReloadHistory();
         if (_status == TimerStatus.Completed)
             _refreshTimer.Stop();
 
@@ -275,6 +293,21 @@ public partial class MainViewModel : ViewModelBase
         HasProgress = snapshot.Target is not null;
         ProgressPercent = snapshot.Progress * 100;
         OnPropertyChanged(nameof(CanEditSettings));
+    }
+
+    private void DeleteHistoryEntry(Guid id)
+    {
+        if (_history.Delete(id))
+            ReloadHistory();
+    }
+
+    private void ReloadHistory()
+    {
+        HistoryItems.Clear();
+        var entries = _historyStore.Load();
+        for (var index = entries.Count - 1; index >= 0; index--)
+            HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry));
+        OnPropertyChanged(nameof(HasNoHistory));
     }
 
     private TimerHistoryEntry CreateHistoryEntry(TimerSnapshot snapshot)

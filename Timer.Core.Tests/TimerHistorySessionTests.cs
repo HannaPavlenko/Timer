@@ -57,6 +57,21 @@ public sealed class TimerHistorySessionTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
     }
 
+    [TestMethod]
+    public void DeletedRunningEntryIsNotRestoredByLaterUpdates()
+    {
+        var store = new MemoryStore();
+        var history = new TimerHistorySession(store);
+        var entry = NewEntry();
+        history.StartNew(entry);
+
+        Assert.IsTrue(history.Delete(entry.Id));
+        history.Update(Snapshot(TimerStatus.Paused, TimeSpan.FromSeconds(2)));
+        history.Stop(Snapshot(TimerStatus.Paused, TimeSpan.FromSeconds(2)));
+
+        Assert.AreEqual(0, store.Load().Count);
+    }
+
     private static TimerHistoryEntry NewEntry() => new(
         Guid.NewGuid(), TimerMode.CountUp, DateTimeOffset.UtcNow,
         TimerHistoryStatus.Running, TimeSpan.Zero, TimeSpan.FromSeconds(6));

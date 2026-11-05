@@ -214,6 +214,44 @@
           </StackPanel>
         </Border>
 
+        <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
+                CornerRadius="20" Padding="18">
+          <StackPanel Spacing="14">
+            <TextBlock Classes="heading" Text="History" />
+            <TextBlock Classes="muted" Text="No timers yet."
+                       IsVisible="{Binding HasNoHistory}" />
+            <ItemsControl ItemsSource="{Binding HistoryItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TimerHistoryItemViewModel">
+                  <Border Background="#F8F3EB" CornerRadius="14" Padding="14"
+                          Margin="0,0,0,10">
+                    <StackPanel Spacing="8">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding ModeLabel}"
+                                   FontWeight="SemiBold" Foreground="#292D28" />
+                        <Border Grid.Column="1" Background="#F4E6DC" CornerRadius="10"
+                                Padding="8,4" Margin="10,0,0,0">
+                          <TextBlock Classes="kicker" Text="{Binding StatusLabel}" />
+                        </Border>
+                      </Grid>
+                      <TextBlock Classes="muted" Text="{Binding StartedLabel}" />
+                      <TextBlock Classes="muted" Text="{Binding SettingsLabel}"
+                                 TextWrapping="Wrap" />
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Classes="muted" Text="{Binding ElapsedLabel}"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Classes="secondary" Content="Delete"
+                                Command="{Binding DeleteCommand}" Padding="12,7"
+                                FontSize="12" CornerRadius="9" />
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </Grid>
   </ScrollViewer>
