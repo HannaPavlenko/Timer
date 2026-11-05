@@ -144,7 +144,7 @@
           </StackPanel>
         </Border>
 
-        <Border IsVisible="{Binding IsDurationMode}" IsEnabled="{Binding CanEditSettings}"
+        <Border IsVisible="{Binding IsDurationMode}"
                 Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
                 CornerRadius="20" Padding="18">
           <StackPanel Spacing="14">
@@ -154,12 +154,12 @@
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
                 <TextBlock Classes="muted" Text="Minutes" />
-                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" IsReadOnly="{Binding !CanEditSettings}" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="3" PlaceholderText="0" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
                 <TextBlock Classes="muted" Text="Seconds" />
-                <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <controls:DigitsOnlyTextBox Classes="timeInput" IsReadOnly="{Binding !CanEditSettings}" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="2" PlaceholderText="0" />
               </StackPanel>
             </Grid>

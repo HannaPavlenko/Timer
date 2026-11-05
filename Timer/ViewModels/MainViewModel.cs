@@ -16,6 +16,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly TimerHistorySession _history;
     private readonly DispatcherTimer _refreshTimer;
     private TimerMode _selectedMode;
+    private bool _clearingTargetInputs;
     private TimerStatus _status = TimerStatus.Ready;
     private (string Minutes, string Seconds) _countUpDuration;
     private (string Minutes, string Seconds) _countdownDuration;
@@ -180,7 +181,7 @@ public partial class MainViewModel : ViewModelBase
 
     private void RefreshReadyPreview()
     {
-        if (_status is TimerStatus.Ready or TimerStatus.Completed)
+        if (!_clearingTargetInputs && _status is (TimerStatus.Ready or TimerStatus.Completed))
             PrepareMode();
     }
 
@@ -245,7 +246,10 @@ public partial class MainViewModel : ViewModelBase
         _history.Update(snapshot);
         _status = snapshot.Status;
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
+        {
+            ClearTargetInputs();
             ReloadHistory();
+        }
         else if (snapshot.Status == TimerStatus.Running && _history.CurrentEntryId is { } currentId)
         {
             foreach (var item in HistoryItems)
@@ -317,13 +321,31 @@ public partial class MainViewModel : ViewModelBase
             ReloadHistory();
     }
 
+    private void ClearTargetInputs()
+    {
+        if (!IsDurationMode)
+            return;
+
+        // Notify the inputs without reconfiguring the completed engine or its display.
+        _clearingTargetInputs = true;
+        try
+        {
+            DurationMinutes = "0";
+            DurationSeconds = "0";
+        }
+        finally
+        {
+            _clearingTargetInputs = false;
+        }
+    }
+
     private void StopHistoryEntry(Guid id)
     {
         if (_status == TimerStatus.Running && _history.CurrentEntryId == id)
         {
             Reset();
-            if (IsDurationMode)
-                DurationSeconds = "0";
+            ClearTargetInputs();
+            PrepareMode();
         }
     }
 
@@ -354,11 +376,6 @@ public partial class MainViewModel : ViewModelBase
 
         _history.Restart(entry);
         BeginRunning();
-        if (IsDurationMode)
-        {
-            DurationMinutes = "0";
-            DurationSeconds = "0";
-        }
     }
 
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
