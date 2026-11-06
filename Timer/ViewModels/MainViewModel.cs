@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -15,7 +15,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly TimerHistorySession _history;
     private readonly DispatcherTimer _refreshTimer;
     private TimerMode _selectedMode;
-    private bool _clearingTargetInputs;
+    private bool _clearingTimeInputs;
     private TimerStatus _status = TimerStatus.Ready;
     private (string Minutes, string Seconds) _countUpDuration;
     private (string Minutes, string Seconds) _countdownDuration;
@@ -49,6 +49,9 @@ public partial class MainViewModel : ViewModelBase
 
     public bool IsIntervalsSelected => _selectedMode == TimerMode.Intervals;
     public bool IsDurationMode => _selectedMode is TimerMode.CountUp or TimerMode.Countdown;
+    /// <summary>Whether the primary action pauses an active timer.</summary>
+    public bool IsTimerRunning => _status == TimerStatus.Running;
+
     public bool CanEditSettings => _status is TimerStatus.Ready or TimerStatus.Completed;
     public ObservableCollection<TimerHistoryItemViewModel> HistoryItems { get; } = [];
     public bool HasNoHistory => HistoryItems.Count == 0;
@@ -141,7 +144,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private string _rounds = "0";
+    private string _rounds = "1";
     public string Rounds
     {
         get => _rounds;
@@ -191,7 +194,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private string _primaryActionLabel = "Start timer";
+    private string _primaryActionLabel = "Start";
     public string PrimaryActionLabel
     {
         get => _primaryActionLabel;
@@ -270,7 +273,30 @@ public partial class MainViewModel : ViewModelBase
         ReloadHistory();
         _engine.Reset();
         _status = TimerStatus.Ready;
+
+        if (IsIntervalsSelected)
+        {
+            _clearingTimeInputs = true;
+
+            try
+            {
+                PreparationMinutes = "0";
+                PreparationSeconds = "0";
+                WorkMinutes = "0";
+                WorkSeconds = "0";
+                RestMinutes = "0";
+                RestSeconds = "0";
+                Rounds = "1";
+            }
+            finally
+            {
+                _clearingTimeInputs = false;
+            }
+        }
+
         PrepareMode();
+        OnPropertyChanged(nameof(CanEditSettings));
+        OnPropertyChanged(nameof(IsTimerRunning));
     }
 
     public void SuspendUpdates() => _refreshTimer.Stop();
@@ -315,13 +341,14 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsIntervalsSelected));
         OnPropertyChanged(nameof(IsDurationMode));
         OnPropertyChanged(nameof(CanEditSettings));
+        OnPropertyChanged(nameof(IsTimerRunning));
         PrepareMode();
         ReloadHistory();
     }
 
     private void RefreshReadyPreview()
     {
-        if (!_clearingTargetInputs && _status is (TimerStatus.Ready or TimerStatus.Completed))
+        if (!_clearingTimeInputs && _status is (TimerStatus.Ready or TimerStatus.Completed))
             PrepareMode();
     }
 
@@ -335,7 +362,7 @@ public partial class MainViewModel : ViewModelBase
             StatusLabel = "READY";
             PhaseLabel = "SET YOUR TIME";
             DetailLabel = "Check the values below.";
-            PrimaryActionLabel = "Start timer";
+            PrimaryActionLabel = "Start";
             ProgressPercent = 0;
         }
     }
@@ -448,11 +475,12 @@ public partial class MainViewModel : ViewModelBase
             TimerStatus.Running => "Pause timer",
             TimerStatus.Paused => "Resume timer",
             TimerStatus.Completed => "Start again",
-            _ => "Start timer"
+            _ => "Start"
         };
         HasProgress = snapshot.Target is not null;
         ProgressPercent = snapshot.Progress * 100;
         OnPropertyChanged(nameof(CanEditSettings));
+        OnPropertyChanged(nameof(IsTimerRunning));
     }
 
     private void DeleteHistoryEntry(Guid id)
@@ -467,7 +495,7 @@ public partial class MainViewModel : ViewModelBase
             return;
 
         // Notify the inputs without reconfiguring the completed engine or its display.
-        _clearingTargetInputs = true;
+        _clearingTimeInputs = true;
         try
         {
             DurationMinutes = "0";
@@ -475,7 +503,7 @@ public partial class MainViewModel : ViewModelBase
         }
         finally
         {
-            _clearingTargetInputs = false;
+            _clearingTimeInputs = false;
         }
     }
 
@@ -521,7 +549,8 @@ public partial class MainViewModel : ViewModelBase
     private static bool CanRestartHistoryEntry(TimerHistoryEntry entry)
     {
         if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused) &&
-            !(entry.Mode is (TimerMode.CountUp or TimerMode.Countdown) && entry.Status == TimerHistoryStatus.Completed))
+            !(entry.Mode is (TimerMode.CountUp or TimerMode.Countdown or TimerMode.Intervals) &&
+              entry.Status == TimerHistoryStatus.Completed))
             return false;
 
         return entry.Mode switch

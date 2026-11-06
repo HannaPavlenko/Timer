@@ -136,10 +136,28 @@
                          Foreground="#B96B50" Background="#EDE5DA" />
 
             <Grid ColumnDefinitions="2*,*">
-              <Button Grid.Column="0" Classes="action" Margin="0,0,6,0"
-                      Content="{Binding PrimaryActionLabel}" Command="{Binding StartOrPauseCommand}" />
-              <Button Grid.Column="1" Classes="secondary" Margin="6,0,0,0"
-                      Content="Reset" Command="{Binding ResetCommand}" />
+              <Button Grid.Column="0" Classes="action" Margin="0,0,6,0" Height="56"
+                      ToolTip.Tip="{Binding PrimaryActionLabel}"
+                      AutomationProperties.Name="{Binding PrimaryActionLabel}"
+                      Command="{Binding StartOrPauseCommand}">
+                <Viewbox Width="22" Height="22">
+                  <Canvas Width="24" Height="24">
+                    <Path IsVisible="{Binding !IsTimerRunning}" Data="M7,3 L21,12 L7,21 Z"
+                          Fill="#FFFDF9" />
+                    <Path IsVisible="{Binding IsTimerRunning}" Data="M6,3 L10,3 L10,21 L6,21 Z M14,3 L18,3 L18,21 L14,21 Z"
+                          Fill="#FFFDF9" />
+                  </Canvas>
+                </Viewbox>
+              </Button>
+              <Button Grid.Column="1" Classes="secondary" Margin="6,0,0,0" Height="56"
+                      ToolTip.Tip="Reset" AutomationProperties.Name="Reset timer" Command="{Binding ResetCommand}">
+                <Viewbox Width="22" Height="22">
+                  <Canvas Width="24" Height="24">
+                    <Path Data="M20,10 A8,8 0 0 0 6,6 M20,4 L20,10 L14,10 M4,14 A8,8 0 0 0 18,18 M4,20 L4,14 L10,14"
+                          Stroke="#524F47" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" />
+                  </Canvas>
+                </Viewbox>
+              </Button>
             </Grid>
           </StackPanel>
         </Border>
@@ -209,7 +227,7 @@
             <StackPanel Spacing="6">
               <TextBlock Classes="muted" Text="Rounds" />
               <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding Rounds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                       MaxLength="2" PlaceholderText="4" />
+                       MaxLength="2" PlaceholderText="1" />
             </StackPanel>
           </StackPanel>
         </Border>
@@ -243,16 +261,33 @@
                           <TextBlock Classes="kicker" FontSize="10" Text="{Binding StatusLabel}" />
                         </Border>
                         <Button Grid.Column="1" IsVisible="{Binding CanRestart}"
-                                Classes="secondary" Content="Restart" Command="{Binding RestartCommand}"
+                                Classes="secondary" Command="{Binding RestartCommand}"
+                                ToolTip.Tip="Restart" AutomationProperties.Name="Restart timer"
                                 Background="#F4E6DC" Foreground="#A25E49" BorderThickness="0"
-                                Padding="3,5" Margin="2,0,0,0" FontSize="10" CornerRadius="9" />
+                                Width="32" Height="32" Padding="7" Margin="2,0,0,0" CornerRadius="9">
+                          <Viewbox Width="18" Height="18">
+                            <Canvas Width="24" Height="24">
+                              <Path Data="M20,11 A8,8 0 1 0 18,18 M20,4 L20,11 L13,11"
+                                    Stroke="#A25E49" StrokeThickness="2" StrokeLineCap="Round"
+                                    StrokeJoin="Round" />
+                            </Canvas>
+                          </Viewbox>
+                        </Button>
                         <Button Grid.Column="1" IsVisible="{Binding CanStop}"
                                 Classes="secondary" Content="Stop" Command="{Binding StopCommand}"
                                 Background="#F4E6DC" Foreground="#A25E49" BorderThickness="0"
                                 Padding="3,5" Margin="2,0,0,0" FontSize="10" CornerRadius="9" />
-                        <Button Grid.Column="2" Classes="secondary" Content="Delete"
-                                Command="{Binding DeleteCommand}" Padding="5,5"
-                                Margin="2,0,0,0" FontSize="10" CornerRadius="9" />
+                        <Button Grid.Column="2" Classes="secondary" Command="{Binding DeleteCommand}"
+                                ToolTip.Tip="Delete" AutomationProperties.Name="Delete timer"
+                                Width="32" Height="32" Padding="7" Margin="2,0,0,0" CornerRadius="9">
+                          <Viewbox Width="18" Height="18">
+                            <Canvas Width="24" Height="24">
+                              <Path Data="M3,6 L21,6 M9,6 L9,3 L15,3 L15,6 M5,6 L6,21 L18,21 L19,6 M10,10 L10,17 M14,10 L14,17"
+                                    Stroke="#524F47" StrokeThickness="2" StrokeLineCap="Round"
+                                    StrokeJoin="Round" />
+                            </Canvas>
+                          </Viewbox>
+                        </Button>
                       </Grid>
                       <TextBlock Classes="muted" Text="{Binding SettingsLabel}"
                                  IsVisible="{Binding HasSettingsLabel}" TextWrapping="Wrap" />

@@ -1,4 +1,4 @@
-namespace Timer.Core;
+﻿namespace Timer.Core;
 
 public sealed class TimerHistorySession
 {
@@ -35,7 +35,8 @@ public sealed class TimerHistorySession
         if (_current is not null)
             throw new InvalidOperationException("Stop the current history entry before restarting another.");
         if (entry.Status is not (TimerHistoryStatus.Stopped or TimerHistoryStatus.Paused) &&
-            !(entry.Mode is (TimerMode.CountUp or TimerMode.Countdown) && entry.Status == TimerHistoryStatus.Completed))
+            !(entry.Mode is (TimerMode.CountUp or TimerMode.Countdown or TimerMode.Intervals) &&
+              entry.Status == TimerHistoryStatus.Completed))
             throw new ArgumentException("This history entry cannot restart in its current state.", nameof(entry));
 
         var restarted = entry with

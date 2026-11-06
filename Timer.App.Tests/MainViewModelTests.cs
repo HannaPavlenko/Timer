@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Avalonia.Controls;
 using Timer.Controls;
 using Timer.ViewModels;
@@ -428,6 +428,75 @@ public sealed class MainViewModelTests
         Assert.AreEqual(mode == TimerMode.Countdown ? "00:00" : "00:01", viewModel.DisplayTime);
         Assert.AreEqual(TimeSpan.FromSeconds(1), store.Load()[0].Target);
         Assert.IsTrue(viewModel.CanEditSettings);
+    }
+
+    /// <summary>Checks interval controls with the default round count and five-second phases.</summary>
+    [TestMethod]
+    public void IntervalsStartPauseAndResetWithDefaultRoundCount()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.SelectIntervalsCommand.Execute(null);
+        viewModel.PreparationSeconds = "5";
+        viewModel.WorkSeconds = "5";
+        viewModel.RestSeconds = "5";
+        Assert.AreEqual("1", viewModel.Rounds);
+        Assert.IsFalse(viewModel.HasError);
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual("GET READY", viewModel.PhaseLabel);
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("PAUSED", viewModel.StatusLabel);
+        viewModel.ResetCommand.Execute(null);
+        Assert.AreEqual("READY", viewModel.StatusLabel);
+        Assert.AreEqual("00:00", viewModel.DisplayTime);
+        Assert.AreEqual("0", viewModel.PreparationSeconds);
+        Assert.AreEqual("0", viewModel.WorkSeconds);
+        Assert.AreEqual("0", viewModel.RestSeconds);
+        Assert.AreEqual("1", viewModel.Rounds);
+        Assert.IsTrue(viewModel.CanEditSettings);
+        viewModel.WorkSeconds = "5";
+        viewModel.RestSeconds = "1";
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        viewModel.ResetCommand.Execute(null);
+        Assert.AreEqual("READY", viewModel.StatusLabel);
+    }
+
+    /// <summary>Checks that a completed interval entry restarts with its saved settings and can stop.</summary>
+    [TestMethod]
+    public void CompletedIntervalsRestartAndStopWithoutDuplicatingHistory()
+    {
+        var store = new MemoryHistoryStore();
+
+        var completed = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
+            DateTimeOffset.UtcNow.AddMinutes(-5), TimerHistoryStatus.Completed, TimeSpan.FromSeconds(30),
+            Preparation: TimeSpan.FromSeconds(5), Work: TimeSpan.FromSeconds(10),
+            Rest: TimeSpan.FromSeconds(5), Rounds: 2, Name: "Training");
+
+        store.Upsert(completed);
+
+        var viewModel = new MainViewModel(store);
+        viewModel.SelectIntervalsCommand.Execute(null);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+        Assert.IsFalse(viewModel.HistoryItems[0].ShowStatus);
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual("5", viewModel.PreparationSeconds);
+        Assert.AreEqual("10", viewModel.WorkSeconds);
+        Assert.AreEqual("5", viewModel.RestSeconds);
+        Assert.AreEqual("2", viewModel.Rounds);
+        Assert.AreEqual("Training", viewModel.HistoryItems[0].Name);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        Assert.AreEqual("10", viewModel.WorkSeconds);
+        Assert.IsTrue(viewModel.HistoryItems[0].CanStop);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(completed.Id, store.Load()[0].Id);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
     }
 
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
