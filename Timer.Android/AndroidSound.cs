@@ -1,26 +1,39 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Android.Media;
+using Timer.Core;
 
 namespace Timer.Android;
 
-/// <summary>Produces a short Android tone using the current media volume.</summary>
+/// <summary>Plays timer cues through the Android media audio device.</summary>
 internal static class AndroidSound
 {
-    /// <summary>Plays one short beep and releases the native generator afterwards.</summary>
-    public static async Task PlayAsync()
+    /// <summary>Plays a WAV cue and releases the player and temporary file afterwards.</summary>
+    public static async Task PlayAsync(TimerSound sound)
     {
-        using var tone = new ToneGenerator(Stream.Music, 80);
+        var context = global::Android.App.Application.Context;
+        var path = Path.Combine(context.CacheDir!.AbsolutePath, $"timer-{Guid.NewGuid():N}.wav");
         try
         {
-            if (!tone.StartTone(Tone.PropBeep, 160))
-                throw new InvalidOperationException("Android could not start the timer sound.");
+            await File.WriteAllBytesAsync(path, TimerSoundAudio.CreateWave(sound)).ConfigureAwait(false);
+            using var player = new MediaPlayer();
+            var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            player.Completion += (_, _) => completed.TrySetResult();
+            player.Error += (_, args) =>
+            {
+                args.Handled = true;
+                completed.TrySetException(new InvalidOperationException("Android audio playback failed."));
+            };
 
-            await Task.Delay(200).ConfigureAwait(false);
+            player.SetDataSource(path);
+            player.Prepare();
+            player.Start();
+            await completed.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
         }
         finally
         {
-            tone.Release();
+            File.Delete(path);
         }
     }
 }

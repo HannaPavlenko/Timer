@@ -13,7 +13,7 @@ public sealed class SoundPlaybackTests
         var pending = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var calls = 0;
 
-        var player = new SoundPlayback(() =>
+        var player = new SoundPlayback(_ =>
         {
             calls++;
             return pending.Task;
@@ -38,7 +38,7 @@ public sealed class SoundPlaybackTests
     {
         var calls = 0;
 
-        var player = new SoundPlayback(() =>
+        var player = new SoundPlayback(_ =>
         {
             calls++;
 

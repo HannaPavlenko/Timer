@@ -5,25 +5,25 @@ namespace Timer.Core;
 /// <summary>Plays one platform sound at a time without interrupting timer updates on audio failures.</summary>
 public sealed class SoundPlayback
 {
-    private readonly Func<Task> _playSoundAsync;
+    private readonly Func<TimerSound, Task> _playSoundAsync;
     private int _isPlaying;
 
     /// <summary>Wraps a platform implementation that completes when its short sound ends.</summary>
-    public SoundPlayback(Func<Task> playSoundAsync)
+    public SoundPlayback(Func<TimerSound, Task> playSoundAsync)
     {
         ArgumentNullException.ThrowIfNull(playSoundAsync);
         _playSoundAsync = playSoundAsync;
     }
 
     /// <summary>Plays a sound, skipping overlapping requests and recording audio failures.</summary>
-    public async Task PlayAsync()
+    public async Task PlayAsync(TimerSound sound = TimerSound.Completion)
     {
         if (Interlocked.CompareExchange(ref _isPlaying, 1, 0) != 0)
             return;
 
         try
         {
-            await _playSoundAsync().ConfigureAwait(false);
+            await _playSoundAsync(sound).ConfigureAwait(false);
         }
         catch (Exception exception)
         {

@@ -83,11 +83,17 @@ public sealed class SoundTests
         viewModel.IsSoundEnabled = true;
 
         var signals = 0;
+        var cues = new List<TimerSound>();
+        viewModel.SoundRequested += (_, args) => cues.Add(args.Sound);
         viewModel.SoundRequested += (_, _) => signals++;
         viewModel.StartOrPauseCommand.Execute(null);
-        Assert.AreEqual(0, signals);
+        Assert.AreEqual(1, signals);
 
-        var expected = 0;
+        var expected = 1;
+        viewModel.StartOrPauseCommand.Execute(null);
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual(1, signals);
+
         if (preparationSeconds > 0)
         {
             clock.Advance(preparationSeconds);
@@ -105,6 +111,12 @@ public sealed class SoundTests
         }
 
         Assert.AreEqual("FINISHED", viewModel.StatusLabel);
+        var expectedCues = preparationSeconds > 0
+            ? new[] {TimerSound.Prepare, TimerSound.Work, TimerSound.Rest, TimerSound.Work, TimerSound.Rest, TimerSound.Gong}
+            : new[] {TimerSound.Work, TimerSound.Rest, TimerSound.Work, TimerSound.Rest, TimerSound.Gong};
+        CollectionAssert.AreEqual(expectedCues, cues);
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        Assert.AreEqual(preparationSeconds > 0 ? TimerSound.Prepare : TimerSound.Work, cues[^1]);
     }
 
     /// <summary>Checks that manual controls and stopwatch activity do not emit completion signals.</summary>

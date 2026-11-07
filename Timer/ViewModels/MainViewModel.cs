@@ -43,8 +43,8 @@ public partial class MainViewModel : ViewModelBase
         SelectMode(TimerMode.Stopwatch);
     }
 
-    /// <summary>Requests one short platform sound at an observed countdown boundary.</summary>
-    public event EventHandler? SoundRequested;
+    /// <summary>Requests a phase cue or completion sound at an observed timer boundary.</summary>
+    public event EventHandler<TimerSoundEventArgs>? SoundRequested;
 
     /// <summary>Whether countdown boundaries request a sound; shared across all modes.</summary>
     public bool IsSoundEnabled
@@ -497,13 +497,17 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsTimerRunning));
 
         if (requestSound)
-            SoundRequested?.Invoke(this, EventArgs.Empty);
+            SoundRequested?.Invoke(this, new TimerSoundEventArgs(GetSound(snapshot)));
     }
 
     private bool ObserveSoundBoundary(TimerSnapshot snapshot)
     {
         var previous = _soundSnapshot;
         _soundSnapshot = snapshot;
+
+        if (IsSoundEnabled && previous is null && snapshot.Mode == TimerMode.Intervals &&
+            snapshot.Status == TimerStatus.Running)
+            return true;
 
         if (!IsSoundEnabled || previous is null || previous.Mode != snapshot.Mode ||
             previous.Status is not (TimerStatus.Running or TimerStatus.Paused) ||
@@ -514,6 +518,23 @@ public partial class MainViewModel : ViewModelBase
         return snapshot.Status == TimerStatus.Completed ||
                snapshot.Mode == TimerMode.Intervals &&
                (snapshot.Phase != previous.Phase || snapshot.Round != previous.Round);
+    }
+
+    private static TimerSound GetSound(TimerSnapshot snapshot)
+    {
+        if (snapshot.Mode != TimerMode.Intervals)
+            return TimerSound.Completion;
+
+        if (snapshot.Status == TimerStatus.Completed)
+            return TimerSound.Gong;
+
+        return snapshot.Phase switch
+        {
+            IntervalPhase.Prepare => TimerSound.Prepare,
+            IntervalPhase.Work => TimerSound.Work,
+            IntervalPhase.Rest => TimerSound.Rest,
+            _ => TimerSound.Completion
+        };
     }
 
     private void DeleteHistoryEntry(Guid id)

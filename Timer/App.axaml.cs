@@ -47,10 +47,10 @@ public partial class App : Application
     private static MainViewModel CreateViewModel()
     {
         var viewModel = new MainViewModel();
-        viewModel.SoundRequested += async (_, _) =>
+        viewModel.SoundRequested += async (_, args) =>
         {
             if (SoundPlayback is { } playback)
-                await playback.PlayAsync();
+                await playback.PlayAsync(args.Sound);
         };
 
         return viewModel;

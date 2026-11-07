@@ -1,15 +1,22 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Timer.Core;
 
 namespace Timer.Desktop;
 
-/// <summary>Produces a short tone on the default Windows audio device without blocking the UI.</summary>
+/// <summary>Plays portable timer cues on the Windows audio device.</summary>
 internal static class WindowsSound
 {
-    /// <summary>Plays a 160-millisecond completion tone on Windows.</summary>
-    public static Task PlayAsync() => Task.Run(() =>
+    /// <summary>Plays the complete cue on a worker thread.</summary>
+    public static Task PlayAsync(TimerSound sound) => Task.Run(() =>
     {
-        if (OperatingSystem.IsWindows())
-            Console.Beep(880, 160);
+        if (OperatingSystem.IsWindows() &&
+            !PlaySound(TimerSoundAudio.CreateWave(sound), IntPtr.Zero, 0x0004 | 0x0002))
+            throw new InvalidOperationException("Windows could not play the timer sound.");
     });
+
+    [DllImport("winmm.dll", EntryPoint = "PlaySoundW")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool PlaySound(byte[] data, IntPtr module, uint flags);
 }
