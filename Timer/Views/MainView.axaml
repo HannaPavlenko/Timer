@@ -119,14 +119,12 @@
             </Grid>
 
             <Border x:Name="TimeDisplayPanel" Background="#F8F3EB" CornerRadius="18" Padding="16,20">
-              <Grid RowDefinitions="Auto,*,Auto" RowSpacing="7">
-                <TextBlock Classes="kicker" Text="{Binding PhaseLabel}"
-                           HorizontalAlignment="Center" />
-                <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+              <Grid RowDefinitions="*,Auto" RowSpacing="7">
+                <Viewbox Grid.Row="0" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                   <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold"
                              Foreground="#292D28" />
                 </Viewbox>
-                <TextBlock Grid.Row="2" Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
+                <TextBlock Grid.Row="1" Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
               </Grid>
             </Border>
