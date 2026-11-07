@@ -397,7 +397,6 @@ public partial class MainViewModel : ViewModelBase
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
         {
             ClearTargetInputs();
-            ClearIntervalInputs();
             ReloadHistory();
         }
         else if (snapshot.Status == TimerStatus.Running && _history.CurrentEntryId is { } currentId)

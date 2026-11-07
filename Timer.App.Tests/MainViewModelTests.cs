@@ -499,9 +499,11 @@ public sealed class MainViewModelTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
     }
 
-    /// <summary>Checks field clearing after a saved interval finishes and preserves restart settings.</summary>
+    /// <summary>Checks that interval settings survive completion until Reset is pressed.</summary>
     [TestMethod]
-    public async Task RestartedIntervalsClearInputsOnCompletion()
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task IntervalsKeepInputsOnCompletionUntilReset(bool restartSaved)
     {
         var store = new MemoryHistoryStore();
 
@@ -509,11 +511,20 @@ public sealed class MainViewModelTests
             DateTimeOffset.UtcNow.AddMinutes(-1), TimerHistoryStatus.Completed, TimeSpan.FromSeconds(1),
             Work: TimeSpan.FromSeconds(1), Rest: TimeSpan.FromSeconds(1), Rounds: 1);
 
-        store.Upsert(saved);
+        if (restartSaved)
+            store.Upsert(saved);
 
         var viewModel = new MainViewModel(store);
         viewModel.SelectIntervalsCommand.Execute(null);
-        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        if (restartSaved)
+            viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        else
+        {
+            viewModel.WorkSeconds = "1";
+            viewModel.RestSeconds = "1";
+            viewModel.StartOrPauseCommand.Execute(null);
+        }
+
         Assert.AreEqual("1", viewModel.WorkSeconds);
 
         await Task.Delay(1200);
@@ -524,9 +535,9 @@ public sealed class MainViewModelTests
         Assert.AreEqual("0", viewModel.PreparationMinutes);
         Assert.AreEqual("0", viewModel.PreparationSeconds);
         Assert.AreEqual("0", viewModel.WorkMinutes);
-        Assert.AreEqual("0", viewModel.WorkSeconds);
+        Assert.AreEqual("1", viewModel.WorkSeconds);
         Assert.AreEqual("0", viewModel.RestMinutes);
-        Assert.AreEqual("0", viewModel.RestSeconds);
+        Assert.AreEqual("1", viewModel.RestSeconds);
         Assert.AreEqual("1", viewModel.Rounds);
         Assert.IsTrue(viewModel.CanEditSettings);
         Assert.AreEqual(TimeSpan.FromSeconds(1), store.Load()[0].Work);
@@ -538,7 +549,10 @@ public sealed class MainViewModelTests
         viewModel.HistoryItems[0].StopCommand.Execute(null);
 
         Assert.AreEqual(1, store.Load().Count);
-        Assert.AreEqual(saved.Id, store.Load()[0].Id);
+        viewModel.ResetCommand.Execute(null);
+        Assert.AreEqual("0", viewModel.WorkSeconds);
+        Assert.AreEqual("0", viewModel.RestSeconds);
+        Assert.AreEqual("1", viewModel.Rounds);
     }
 
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
