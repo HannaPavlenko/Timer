@@ -1,4 +1,4 @@
-namespace Timer.Core;
+﻿namespace Timer.Core;
 
 /// <summary>
 /// Tracks active time with a monotonic timestamp. UI refresh frequency does not affect accuracy.
@@ -52,7 +52,7 @@ public sealed class TimerEngine
         try
         {
             _ = checked(work.Ticks + rest.Ticks);
-            _ = checked(preparation.Ticks + work.Ticks * rounds + rest.Ticks * (rounds - 1L));
+            _ = checked(preparation.Ticks + work.Ticks * rounds + rest.Ticks * rounds);
         }
         catch (OverflowException)
         {
@@ -120,7 +120,7 @@ public sealed class TimerEngine
     {
         if (_status == TimerStatus.Completed)
             return new(_mode, _status, IntervalPhase.Complete, _rounds, _rounds,
-                _work, TimeSpan.Zero, _work, totalElapsed, totalDuration);
+                _rest, TimeSpan.Zero, _rest, totalElapsed, totalDuration);
 
         if (totalElapsed < _preparation)
             return new(_mode, _status, IntervalPhase.Prepare, 1, _rounds,
@@ -151,7 +151,7 @@ public sealed class TimerEngine
         TimerMode.Stopwatch => null,
         TimerMode.CountUp or TimerMode.Countdown => _duration,
         TimerMode.Intervals => TimeSpan.FromTicks(
-            checked(_preparation.Ticks + _work.Ticks * _rounds + _rest.Ticks * (_rounds - 1L))),
+            checked(_preparation.Ticks + _work.Ticks * _rounds + _rest.Ticks * _rounds)),
         _ => throw new InvalidOperationException("Unknown timer mode.")
     };
 

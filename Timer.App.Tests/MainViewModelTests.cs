@@ -527,7 +527,7 @@ public sealed class MainViewModelTests
 
         Assert.AreEqual("1", viewModel.WorkSeconds);
 
-        await Task.Delay(1200);
+        await Task.Delay(2200);
         viewModel.ResumeUpdates();
 
         Assert.AreEqual("FINISHED", viewModel.StatusLabel);

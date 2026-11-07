@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Timer.Core;
 
 namespace Timer.Core.Tests;
@@ -94,7 +94,7 @@ public sealed class TimerEngineTests
         var ready = timer.Update();
         Assert.AreEqual(IntervalPhase.Prepare, ready.Phase);
         Assert.AreEqual(TimeSpan.FromSeconds(7), ready.Remaining);
-        Assert.AreEqual(TimeSpan.FromSeconds(32), ready.TotalDuration);
+        Assert.AreEqual(TimeSpan.FromSeconds(37), ready.TotalDuration);
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(7));
@@ -109,12 +109,12 @@ public sealed class TimerEngineTests
         Assert.AreEqual(2, secondWork.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(9), secondWork.Remaining);
 
-        clock.Advance(TimeSpan.FromSeconds(9));
+        clock.Advance(TimeSpan.FromSeconds(14));
         Assert.AreEqual(IntervalPhase.Complete, timer.Update().Phase);
     }
 
     [TestMethod]
-    public void IntervalsFinishAfterFinalWorkWithoutFinalRest()
+    public void IntervalsFinishAfterFinalRest()
     {
         var clock = new ManualTimeProvider();
         var timer = new TimerEngine(clock);
@@ -122,17 +122,20 @@ public sealed class TimerEngineTests
         timer.Start();
 
         clock.Advance(TimeSpan.FromSeconds(25));
+        Assert.AreEqual(IntervalPhase.Rest, timer.Update().Phase);
+        Assert.AreEqual(TimeSpan.FromSeconds(5), timer.Update().Remaining);
+        clock.Advance(TimeSpan.FromSeconds(5));
         var snapshot = timer.Update();
 
         Assert.AreEqual(TimerStatus.Completed, snapshot.Status);
         Assert.AreEqual(IntervalPhase.Complete, snapshot.Phase);
         Assert.AreEqual(2, snapshot.Round);
-        Assert.AreEqual(TimeSpan.FromSeconds(25), snapshot.TotalDuration);
+        Assert.AreEqual(TimeSpan.FromSeconds(30), snapshot.TotalDuration);
         Assert.AreEqual(TimeSpan.Zero, snapshot.Remaining);
     }
 
     [TestMethod]
-    public void SingleRoundHasNoRestPhase()
+    public void SingleRoundIncludesRestPhase()
     {
         var clock = new ManualTimeProvider();
         var timer = new TimerEngine(clock);
@@ -142,8 +145,12 @@ public sealed class TimerEngineTests
         clock.Advance(TimeSpan.FromSeconds(10));
         var snapshot = timer.Update();
 
-        Assert.AreEqual(TimerStatus.Completed, snapshot.Status);
-        Assert.AreEqual(TimeSpan.FromSeconds(10), snapshot.TotalDuration);
+        Assert.AreEqual(TimerStatus.Running, snapshot.Status);
+        Assert.AreEqual(IntervalPhase.Rest, snapshot.Phase);
+        Assert.AreEqual(TimeSpan.FromSeconds(5), snapshot.Remaining);
+        Assert.AreEqual(TimeSpan.FromSeconds(15), snapshot.TotalDuration);
+        clock.Advance(TimeSpan.FromSeconds(5));
+        Assert.AreEqual(TimerStatus.Completed, timer.Update().Status);
     }
 
     [TestMethod]
