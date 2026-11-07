@@ -274,9 +274,16 @@
                           </Viewbox>
                         </Button>
                         <Button Grid.Column="1" IsVisible="{Binding CanStop}"
-                                Classes="secondary" Content="Stop" Command="{Binding StopCommand}"
+                                Classes="secondary" Command="{Binding StopCommand}"
+                                ToolTip.Tip="Stop" AutomationProperties.Name="Stop timer"
                                 Background="#F4E6DC" Foreground="#A25E49" BorderThickness="0"
-                                Padding="3,5" Margin="2,0,0,0" FontSize="10" CornerRadius="9" />
+                                Width="32" Height="32" Padding="7" Margin="2,0,0,0" CornerRadius="9">
+                          <Viewbox Width="18" Height="18">
+                            <Canvas Width="24" Height="24">
+                              <Path Data="M5,5 L19,5 L19,19 L5,19 Z" Fill="#A25E49" />
+                            </Canvas>
+                          </Viewbox>
+                        </Button>
                         <Button Grid.Column="2" Classes="secondary" Command="{Binding DeleteCommand}"
                                 ToolTip.Tip="Delete" AutomationProperties.Name="Delete timer"
                                 Width="32" Height="32" Padding="7" Margin="2,0,0,0" CornerRadius="9">
