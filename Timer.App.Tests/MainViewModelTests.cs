@@ -151,7 +151,7 @@ public sealed class MainViewModelTests
         Assert.AreEqual(1, viewModel.HistoryItems.Count);
         Assert.AreEqual("Count up", viewModel.HistoryItems[0].ModeLabel);
         Assert.IsFalse(viewModel.HistoryItems[0].HasSettingsLabel);
-        StringAssert.StartsWith(viewModel.HistoryItems[0].TimeAndDateLabel, "00:06 · ");
+        Assert.AreEqual("00:06", viewModel.HistoryItems[0].DurationLabel);
 
         var reopened = new MainViewModel(store);
         Assert.IsTrue(reopened.HasNoHistory);

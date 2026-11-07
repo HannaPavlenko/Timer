@@ -253,7 +253,7 @@
                                HorizontalContentAlignment="Left" />
                       <Grid ColumnDefinitions="*,Auto,Auto">
                         <TextBlock Grid.Column="0" Classes="muted" FontSize="10"
-                                   Text="{Binding TimeAndDateLabel}" TextWrapping="NoWrap"
+                                   Text="{Binding DurationLabel}" TextWrapping="NoWrap"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                         <Border Grid.Column="1" IsVisible="{Binding ShowStatus}"
                                 Background="#F4E6DC" CornerRadius="10"

@@ -1,5 +1,4 @@
-using System;
-using System.Globalization;
+﻿using System;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,9 +8,8 @@ namespace Timer.ViewModels;
 
 public sealed class TimerHistoryItemViewModel : ObservableObject
 {
-    private readonly string _startedLabel;
     private readonly TimeSpan? _target;
-    private string _timeAndDateLabel = string.Empty;
+    private string _durationLabel = string.Empty;
     private string _name;
     private readonly Action<Guid, string> _rename;
 
@@ -41,7 +39,6 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
             TimerHistoryStatus.Stopped => "Stopped",
             _ => throw new ArgumentOutOfRangeException(nameof(entry))
         };
-        _startedLabel = entry.StartedAtUtc.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
         UpdateElapsed(entry.Elapsed);
         SettingsLabel = entry.Mode switch
         {
@@ -72,10 +69,10 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
     public bool CanRestart { get; }
     public bool CanStop { get; }
     public bool ShowStatus { get; }
-    public string TimeAndDateLabel
+    public string DurationLabel
     {
-        get => _timeAndDateLabel;
-        private set => SetProperty(ref _timeAndDateLabel, value);
+        get => _durationLabel;
+        private set => SetProperty(ref _durationLabel, value);
     }
     public string SettingsLabel { get; }
     public bool HasSettingsLabel => !string.IsNullOrEmpty(SettingsLabel);
@@ -84,7 +81,7 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
     public ICommand DeleteCommand { get; }
 
     public void UpdateElapsed(TimeSpan elapsed) =>
-        TimeAndDateLabel = $"{FormatTime(_target ?? elapsed)} · {_startedLabel}";
+        DurationLabel = FormatTime(_target ?? elapsed);
 
     private static string FormatTime(TimeSpan time)
     {
