@@ -10,7 +10,10 @@ namespace Timer.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    private readonly TimerEngine _engine = new();
+    private readonly TimerEngine _engine;
+    private readonly ISoundSettingsStore? _soundSettingsStore;
+    private TimerSnapshot? _soundSnapshot;
+    private bool _isSoundEnabled;
     private readonly ITimerHistoryStore _historyStore;
     private readonly TimerHistorySession _history;
     private readonly DispatcherTimer _refreshTimer;
@@ -20,12 +23,17 @@ public partial class MainViewModel : ViewModelBase
     private (string Minutes, string Seconds) _countUpDuration;
     private (string Minutes, string Seconds) _countdownDuration;
 
-    public MainViewModel() : this(new TimerHistoryStore())
+    public MainViewModel() : this(new TimerHistoryStore(), new SoundSettingsStore())
     {
     }
 
-    public MainViewModel(ITimerHistoryStore historyStore)
+    /// <summary>Creates a timer with optional isolated settings and clock for tests.</summary>
+    public MainViewModel(ITimerHistoryStore historyStore, ISoundSettingsStore? soundSettingsStore = null,
+        TimeProvider? timeProvider = null)
     {
+        _engine = new TimerEngine(timeProvider);
+        _soundSettingsStore = soundSettingsStore;
+        _isSoundEnabled = soundSettingsStore?.Load() ?? false;
         _historyStore = historyStore;
         _history = new TimerHistorySession(historyStore);
         _countUpDuration = (DurationMinutes, DurationSeconds);
@@ -33,6 +41,24 @@ public partial class MainViewModel : ViewModelBase
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _refreshTimer.Tick += (_, _) => Refresh();
         SelectMode(TimerMode.Stopwatch);
+    }
+
+    /// <summary>Requests one short platform sound at an observed countdown boundary.</summary>
+    public event EventHandler? SoundRequested;
+
+    /// <summary>Whether countdown boundaries request a sound; shared across all modes.</summary>
+    public bool IsSoundEnabled
+    {
+        get => _isSoundEnabled;
+        set
+        {
+            if (_isSoundEnabled == value)
+                return;
+
+            _soundSettingsStore?.Save(value);
+            _soundSnapshot = _engine.Update();
+            SetProperty(ref _isSoundEnabled, value);
+        }
     }
 
     public int SelectedModeIndex
@@ -259,6 +285,9 @@ public partial class MainViewModel : ViewModelBase
 
     private void BeginRunning()
     {
+        if (_engine.Update().Status != TimerStatus.Paused)
+            _soundSnapshot = null;
+
         _engine.Start();
         _refreshTimer.Start();
         Refresh();
@@ -268,6 +297,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void Reset()
     {
+        _soundSnapshot = null;
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
         ReloadHistory();
@@ -292,6 +322,7 @@ public partial class MainViewModel : ViewModelBase
 
     private void SelectMode(TimerMode mode)
     {
+        _soundSnapshot = null;
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
         if (_selectedMode == TimerMode.CountUp)
@@ -392,6 +423,7 @@ public partial class MainViewModel : ViewModelBase
     {
         var previousStatus = _status;
         var snapshot = _engine.Update();
+        var requestSound = ObserveSoundBoundary(snapshot);
         _history.Update(snapshot);
         _status = snapshot.Status;
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
@@ -463,6 +495,25 @@ public partial class MainViewModel : ViewModelBase
         ProgressPercent = snapshot.Progress * 100;
         OnPropertyChanged(nameof(CanEditSettings));
         OnPropertyChanged(nameof(IsTimerRunning));
+
+        if (requestSound)
+            SoundRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private bool ObserveSoundBoundary(TimerSnapshot snapshot)
+    {
+        var previous = _soundSnapshot;
+        _soundSnapshot = snapshot;
+
+        if (!IsSoundEnabled || previous is null || previous.Mode != snapshot.Mode ||
+            previous.Status is not (TimerStatus.Running or TimerStatus.Paused) ||
+            snapshot.Status is not (TimerStatus.Running or TimerStatus.Paused or TimerStatus.Completed) ||
+            snapshot.TotalElapsed <= previous.TotalElapsed || snapshot.Mode == TimerMode.Stopwatch)
+            return false;
+
+        return snapshot.Status == TimerStatus.Completed ||
+               snapshot.Mode == TimerMode.Intervals &&
+               (snapshot.Phase != previous.Phase || snapshot.Round != previous.Round);
     }
 
     private void DeleteHistoryEntry(Guid id)
