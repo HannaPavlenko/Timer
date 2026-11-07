@@ -118,17 +118,17 @@
               </Border>
             </Grid>
 
-            <Border Background="#F8F3EB" CornerRadius="18" Padding="16,24">
-              <StackPanel Spacing="7" HorizontalAlignment="Stretch">
+            <Border x:Name="TimeDisplayPanel" Background="#F8F3EB" CornerRadius="18" Padding="16,20">
+              <Grid RowDefinitions="Auto,*,Auto" RowSpacing="7">
                 <TextBlock Classes="kicker" Text="{Binding PhaseLabel}"
                            HorizontalAlignment="Center" />
-                <Viewbox Stretch="Uniform" MaxHeight="82" HorizontalAlignment="Center">
+                <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                   <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold"
                              Foreground="#292D28" />
                 </Viewbox>
-                <TextBlock Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
+                <TextBlock Grid.Row="2" Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
-              </StackPanel>
+              </Grid>
             </Border>
 
             <ProgressBar IsVisible="{Binding HasProgress}" Value="{Binding ProgressPercent}"
