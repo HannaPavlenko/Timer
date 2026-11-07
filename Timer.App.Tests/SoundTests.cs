@@ -101,7 +101,8 @@ public sealed class SoundTests
             Assert.AreEqual(++expected, signals);
         }
 
-        foreach (var duration in new[] {4, 5, 4, 5})
+        var durations = preparationSeconds > 0 ? new[] {4, 5, preparationSeconds, 4, 5} : new[] {4, 5, 4, 5};
+        foreach (var duration in durations)
         {
             clock.Advance(duration);
             viewModel.ResumeUpdates();
@@ -112,7 +113,8 @@ public sealed class SoundTests
 
         Assert.AreEqual("FINISHED", viewModel.StatusLabel);
         var expectedCues = preparationSeconds > 0
-            ? new[] {TimerSound.Prepare, TimerSound.Work, TimerSound.Rest, TimerSound.Work, TimerSound.Rest, TimerSound.Gong}
+            ? new[] {TimerSound.Prepare, TimerSound.Work, TimerSound.Rest, TimerSound.Prepare,
+                TimerSound.Work, TimerSound.Rest, TimerSound.Gong}
             : new[] {TimerSound.Work, TimerSound.Rest, TimerSound.Work, TimerSound.Rest, TimerSound.Gong};
         CollectionAssert.AreEqual(expectedCues, cues);
         viewModel.HistoryItems[0].RestartCommand.Execute(null);

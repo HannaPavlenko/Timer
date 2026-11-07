@@ -51,8 +51,7 @@ public sealed class TimerEngine
 
         try
         {
-            _ = checked(work.Ticks + rest.Ticks);
-            _ = checked(preparation.Ticks + work.Ticks * rounds + rest.Ticks * rounds);
+            _ = checked((preparation.Ticks + work.Ticks + rest.Ticks) * rounds);
         }
         catch (OverflowException)
         {
@@ -122,15 +121,19 @@ public sealed class TimerEngine
             return new(_mode, _status, IntervalPhase.Complete, _rounds, _rounds,
                 _rest, TimeSpan.Zero, _rest, totalElapsed, totalDuration);
 
-        if (totalElapsed < _preparation)
-            return new(_mode, _status, IntervalPhase.Prepare, 1, _rounds,
-                totalElapsed, _preparation - totalElapsed, _preparation, totalElapsed, totalDuration);
-
-        var cycleTicks = checked(_work.Ticks + _rest.Ticks);
-        var intervalTicks = totalElapsed.Ticks - _preparation.Ticks;
-        var completedCycles = intervalTicks / cycleTicks;
-        var offsetTicks = intervalTicks % cycleTicks;
+        var cycleTicks = checked(_preparation.Ticks + _work.Ticks + _rest.Ticks);
+        var completedCycles = totalElapsed.Ticks / cycleTicks;
+        var offsetTicks = totalElapsed.Ticks % cycleTicks;
         var round = checked((int)completedCycles + 1);
+
+        if (offsetTicks < _preparation.Ticks)
+        {
+            var preparationElapsed = TimeSpan.FromTicks(offsetTicks);
+            return new(_mode, _status, IntervalPhase.Prepare, round, _rounds,
+                preparationElapsed, _preparation - preparationElapsed, _preparation, totalElapsed, totalDuration);
+        }
+
+        offsetTicks -= _preparation.Ticks;
         var isWork = offsetTicks < _work.Ticks;
         var phaseDuration = isWork ? _work : _rest;
         var phaseElapsed = isWork
@@ -151,7 +154,7 @@ public sealed class TimerEngine
         TimerMode.Stopwatch => null,
         TimerMode.CountUp or TimerMode.Countdown => _duration,
         TimerMode.Intervals => TimeSpan.FromTicks(
-            checked(_preparation.Ticks + _work.Ticks * _rounds + _rest.Ticks * _rounds)),
+            checked((_preparation.Ticks + _work.Ticks + _rest.Ticks) * _rounds)),
         _ => throw new InvalidOperationException("Unknown timer mode.")
     };
 

@@ -84,7 +84,7 @@ public sealed class TimerEngineTests
     }
 
     [TestMethod]
-    public void PreparationRunsOnceBeforeTheFirstWorkInterval()
+    public void PreparationRunsBeforeEveryWorkInterval()
     {
         var clock = new ManualTimeProvider();
         var timer = new TimerEngine(clock);
@@ -94,7 +94,7 @@ public sealed class TimerEngineTests
         var ready = timer.Update();
         Assert.AreEqual(IntervalPhase.Prepare, ready.Phase);
         Assert.AreEqual(TimeSpan.FromSeconds(7), ready.Remaining);
-        Assert.AreEqual(TimeSpan.FromSeconds(37), ready.TotalDuration);
+        Assert.AreEqual(TimeSpan.FromSeconds(44), ready.TotalDuration);
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(7));
@@ -103,7 +103,17 @@ public sealed class TimerEngineTests
         Assert.AreEqual(1, work.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(10), work.Remaining);
 
-        clock.Advance(TimeSpan.FromSeconds(16));
+        clock.Advance(TimeSpan.FromSeconds(15));
+        var secondPreparation = timer.Update();
+        Assert.AreEqual(IntervalPhase.Prepare, secondPreparation.Phase);
+        Assert.AreEqual(2, secondPreparation.Round);
+        Assert.AreEqual(TimeSpan.FromSeconds(7), secondPreparation.Remaining);
+        timer.Pause();
+        clock.Advance(TimeSpan.FromSeconds(30));
+        Assert.AreEqual(secondPreparation.Remaining, timer.Update().Remaining);
+        timer.Start();
+
+        clock.Advance(TimeSpan.FromSeconds(8));
         var secondWork = timer.Update();
         Assert.AreEqual(IntervalPhase.Work, secondWork.Phase);
         Assert.AreEqual(2, secondWork.Round);
