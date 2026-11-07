@@ -1,7 +1,8 @@
-using Android.App;
+﻿using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
+using Timer.Core;
 
 namespace Timer.Android;
 
@@ -14,5 +15,8 @@ public class AndroidApp : AvaloniaAndroidApplication<App>
     }
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-        => base.CustomizeAppBuilder(builder).WithInterFont();
+    {
+        App.SoundPlayback = new SoundPlayback(AndroidSound.PlayAsync);
+        return base.CustomizeAppBuilder(builder).WithInterFont();
+    }
 }
