@@ -499,6 +499,48 @@ public sealed class MainViewModelTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
     }
 
+    /// <summary>Checks field clearing after a saved interval finishes and preserves restart settings.</summary>
+    [TestMethod]
+    public async Task RestartedIntervalsClearInputsOnCompletion()
+    {
+        var store = new MemoryHistoryStore();
+
+        var saved = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
+            DateTimeOffset.UtcNow.AddMinutes(-1), TimerHistoryStatus.Completed, TimeSpan.FromSeconds(1),
+            Work: TimeSpan.FromSeconds(1), Rest: TimeSpan.FromSeconds(1), Rounds: 1);
+
+        store.Upsert(saved);
+
+        var viewModel = new MainViewModel(store);
+        viewModel.SelectIntervalsCommand.Execute(null);
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        Assert.AreEqual("1", viewModel.WorkSeconds);
+
+        await Task.Delay(1200);
+        viewModel.ResumeUpdates();
+
+        Assert.AreEqual("FINISHED", viewModel.StatusLabel);
+        Assert.AreEqual("00:00", viewModel.DisplayTime);
+        Assert.AreEqual("0", viewModel.PreparationMinutes);
+        Assert.AreEqual("0", viewModel.PreparationSeconds);
+        Assert.AreEqual("0", viewModel.WorkMinutes);
+        Assert.AreEqual("0", viewModel.WorkSeconds);
+        Assert.AreEqual("0", viewModel.RestMinutes);
+        Assert.AreEqual("0", viewModel.RestSeconds);
+        Assert.AreEqual("1", viewModel.Rounds);
+        Assert.IsTrue(viewModel.CanEditSettings);
+        Assert.AreEqual(TimeSpan.FromSeconds(1), store.Load()[0].Work);
+
+        viewModel.HistoryItems[0].RestartCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual("1", viewModel.WorkSeconds);
+        Assert.AreEqual("1", viewModel.RestSeconds);
+        viewModel.HistoryItems[0].StopCommand.Execute(null);
+
+        Assert.AreEqual(1, store.Load().Count);
+        Assert.AreEqual(saved.Id, store.Load()[0].Id);
+    }
+
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
     private sealed class MemoryHistoryStore : ITimerHistoryStore

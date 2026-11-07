@@ -274,25 +274,7 @@ public partial class MainViewModel : ViewModelBase
         _engine.Reset();
         _status = TimerStatus.Ready;
 
-        if (IsIntervalsSelected)
-        {
-            _clearingTimeInputs = true;
-
-            try
-            {
-                PreparationMinutes = "0";
-                PreparationSeconds = "0";
-                WorkMinutes = "0";
-                WorkSeconds = "0";
-                RestMinutes = "0";
-                RestSeconds = "0";
-                Rounds = "1";
-            }
-            finally
-            {
-                _clearingTimeInputs = false;
-            }
-        }
+        ClearIntervalInputs();
 
         PrepareMode();
         OnPropertyChanged(nameof(CanEditSettings));
@@ -415,6 +397,7 @@ public partial class MainViewModel : ViewModelBase
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
         {
             ClearTargetInputs();
+            ClearIntervalInputs();
             ReloadHistory();
         }
         else if (snapshot.Status == TimerStatus.Running && _history.CurrentEntryId is { } currentId)
@@ -487,6 +470,29 @@ public partial class MainViewModel : ViewModelBase
     {
         if (_history.Delete(id))
             ReloadHistory();
+    }
+
+    private void ClearIntervalInputs()
+    {
+        if (IsIntervalsSelected)
+        {
+            _clearingTimeInputs = true;
+
+            try
+            {
+                PreparationMinutes = "0";
+                PreparationSeconds = "0";
+                WorkMinutes = "0";
+                WorkSeconds = "0";
+                RestMinutes = "0";
+                RestSeconds = "0";
+                Rounds = "1";
+            }
+            finally
+            {
+                _clearingTimeInputs = false;
+            }
+        }
     }
 
     private void ClearTargetInputs()
