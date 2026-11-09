@@ -121,8 +121,13 @@
             <Border x:Name="TimeDisplayPanel" Background="#F8F3EB" CornerRadius="18" Padding="16,20">
               <Grid RowDefinitions="*,Auto" RowSpacing="7">
                 <Viewbox Grid.Row="0" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                  <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold"
-                             Foreground="#292D28" />
+                  <Grid>
+                    <!-- Reserve room for three-digit hours so changes in the readout do not rescale it. -->
+                    <TextBlock Text="000:00:00" FontSize="70" FontWeight="SemiBold" FontFeatures="tnum"
+                               Opacity="0" IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold" FontFeatures="tnum"
+                               Foreground="#292D28" HorizontalAlignment="Center" />
+                  </Grid>
                 </Viewbox>
                 <TextBlock Grid.Row="1" Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
                            HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
