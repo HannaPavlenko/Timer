@@ -278,6 +278,11 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
+        if (_status == TimerStatus.Completed && IsDurationMode &&
+            DurationMinutes == "0" && DurationSeconds == "0" &&
+            _engine.Update().Target is { } completedTarget)
+            (DurationMinutes, DurationSeconds) = HistoryDurationFields(completedTarget);
+
         if (_status != TimerStatus.Paused && !TryConfigure())
             return;
 

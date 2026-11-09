@@ -412,7 +412,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     [DataRow(TimerMode.CountUp)]
     [DataRow(TimerMode.Countdown)]
-    public async Task CompletionClearsInputsAndPreservesFinishedDisplay(TimerMode mode)
+    public async Task CompletionClearsInputsAndStartAgainReusesTarget(TimerMode mode)
     {
         var store = new MemoryHistoryStore();
         var viewModel = new MainViewModel(store);
@@ -428,6 +428,13 @@ public sealed class MainViewModelTests
         Assert.AreEqual(mode == TimerMode.Countdown ? "00:00" : "00:01", viewModel.DisplayTime);
         Assert.AreEqual(TimeSpan.FromSeconds(1), store.Load()[0].Target);
         Assert.IsTrue(viewModel.CanEditSettings);
+
+        viewModel.StartOrPauseCommand.Execute(null);
+        Assert.AreEqual("RUNNING", viewModel.StatusLabel);
+        Assert.AreEqual("1", viewModel.DurationSeconds);
+        Assert.AreEqual(mode == TimerMode.Countdown ? "00:01" : "00:00", viewModel.DisplayTime);
+        Assert.AreEqual(2, store.Load().Count);
+        Assert.IsTrue(store.Load().All(entry => entry.Target == TimeSpan.FromSeconds(1)));
     }
 
     /// <summary>Checks interval controls with the default round count and five-second phases.</summary>
