@@ -75,6 +75,10 @@ public partial class MainViewModel : ViewModelBase
 
     public bool IsIntervalsSelected => _selectedMode == TimerMode.Intervals;
     public bool IsDurationMode => _selectedMode is TimerMode.CountUp or TimerMode.Countdown;
+
+    /// <summary>Whether the selected mode offers sound cues.</summary>
+    public bool ShowSoundSetting => _selectedMode != TimerMode.Stopwatch;
+
     /// <summary>Whether the primary action pauses an active timer.</summary>
     public bool IsTimerRunning => _status == TimerStatus.Running;
 
@@ -353,6 +357,7 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedModeIndex));
         OnPropertyChanged(nameof(IsIntervalsSelected));
         OnPropertyChanged(nameof(IsDurationMode));
+        OnPropertyChanged(nameof(ShowSoundSetting));
         OnPropertyChanged(nameof(CanEditSettings));
         OnPropertyChanged(nameof(IsTimerRunning));
         PrepareMode();
