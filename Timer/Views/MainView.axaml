@@ -129,8 +129,10 @@
                                Foreground="#292D28" HorizontalAlignment="Center" />
                   </Grid>
                 </Viewbox>
-                <TextBlock Grid.Row="1" Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
-                           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+                <Grid Grid.Row="1" MinHeight="18">
+                  <TextBlock Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
+                             LineHeight="18" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+                </Grid>
               </Grid>
             </Border>
 
