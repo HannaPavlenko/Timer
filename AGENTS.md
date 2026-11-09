@@ -47,7 +47,7 @@
 
 ## Звук
 
-- Галочка Sound отображается в Count up, Countdown и Intervals. На вкладке Stopwatch она скрыта.
+- Галочка Sound отображается в Count up, Countdown и Intervals. На вкладке Stopwatch она скрыта, но место под неё и индикатор прогресса сохраняется, чтобы кнопки были на той же высоте.
 
 - Общая галочка Sound, по умолчанию выключена. Выбор сохраняется в LocalApplicationData / Stilltime / sound.json через SoundSettingsStore.
 - При включённом Sound начало Prepare — один сигнал, Work — два, Rest — три. После последнего Rest звучит синтезированный гонг. При Prepare = 0 сразу звучат два сигнала Work. Start и Restart интервалов озвучивают начальную фазу; Pause/Resume не повторяют её сигнал.

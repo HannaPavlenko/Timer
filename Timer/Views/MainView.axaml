@@ -134,15 +134,19 @@
               </Grid>
             </Border>
 
-            <ProgressBar IsVisible="{Binding HasProgress}" Value="{Binding ProgressPercent}"
-                         Minimum="0" Maximum="100" Height="7"
-                         Foreground="#B96B50" Background="#EDE5DA" />
+            <Grid Height="7">
+              <ProgressBar IsVisible="{Binding HasProgress}" Value="{Binding ProgressPercent}"
+                           Minimum="0" Maximum="100" Height="7"
+                           Foreground="#B96B50" Background="#EDE5DA" />
+            </Grid>
 
-            <CheckBox Content="Sound" IsVisible="{Binding ShowSoundSetting}"
-                      IsChecked="{Binding IsSoundEnabled, Mode=TwoWay}"
-                      HorizontalAlignment="Right" Foreground="#625F57"
-                      ToolTip.Tip="Play a short sound at the end of each countdown"
-                      AutomationProperties.Name="Sound" />
+            <Grid Height="32">
+              <CheckBox Content="Sound" IsVisible="{Binding ShowSoundSetting}"
+                        IsChecked="{Binding IsSoundEnabled, Mode=TwoWay}"
+                        HorizontalAlignment="Right" Foreground="#625F57"
+                        ToolTip.Tip="Play a short sound at the end of each countdown"
+                        AutomationProperties.Name="Sound" />
+            </Grid>
 
             <Grid ColumnDefinitions="2*,*">
               <Button Grid.Column="0" Classes="action" Margin="0,0,6,0" Height="56"
