@@ -9,9 +9,9 @@ public sealed class TimerHistorySessionTests
     [TestMethod]
     public void PauseResumeAndCompletionUpdateOneEntry()
     {
-        var store = new MemoryStore();
-        var history = new TimerHistorySession(store);
-        var entry = NewEntry();
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry entry = NewEntry();
         history.StartNew(entry);
         history.Update(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(2)));
         Assert.AreEqual(1, store.WriteCount);
@@ -31,13 +31,13 @@ public sealed class TimerHistorySessionTests
     [TestMethod]
     public void ResetStopsCurrentEntryAndAllowsAnotherStart()
     {
-        var store = new MemoryStore();
-        var history = new TimerHistorySession(store);
-        var first = NewEntry();
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry first = NewEntry();
         history.StartNew(first);
         history.Stop(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(4)));
 
-        var second = NewEntry();
+        TimerHistoryEntry second = NewEntry();
         history.StartNew(second);
         Assert.AreEqual(2, store.Load().Count);
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
@@ -48,8 +48,8 @@ public sealed class TimerHistorySessionTests
     [TestMethod]
     public void PreviousProcessRunningEntriesBecomeStopped()
     {
-        var store = new MemoryStore();
-        var previous = NewEntry();
+        MemoryStore store = new MemoryStore();
+        TimerHistoryEntry previous = NewEntry();
         store.Upsert(previous);
 
         _ = new TimerHistorySession(store);
@@ -60,9 +60,9 @@ public sealed class TimerHistorySessionTests
     [TestMethod]
     public void DeletedRunningEntryIsNotRestoredByLaterUpdates()
     {
-        var store = new MemoryStore();
-        var history = new TimerHistorySession(store);
-        var entry = NewEntry();
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry entry = NewEntry();
         history.StartNew(entry);
 
         Assert.IsTrue(history.Delete(entry.Id));
@@ -75,9 +75,9 @@ public sealed class TimerHistorySessionTests
     [TestMethod]
     public void RestartResetsAndReusesTheSameEntry()
     {
-        var store = new MemoryStore();
-        var history = new TimerHistorySession(store);
-        var previous = NewEntry() with
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry previous = NewEntry() with
         {
             StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
             Status = TimerHistoryStatus.Stopped,
@@ -88,7 +88,7 @@ public sealed class TimerHistorySessionTests
 
         history.Restart(previous);
 
-        var running = store.Load()[0];
+        TimerHistoryEntry running = store.Load()[0];
         Assert.AreEqual(1, store.Load().Count);
         Assert.AreEqual(previous.Id, running.Id);
         Assert.AreEqual(TimerHistoryStatus.Running, running.Status);
@@ -121,7 +121,7 @@ public sealed class TimerHistorySessionTests
 
         public void Upsert(TimerHistoryEntry entry)
         {
-            var index = _entries.FindIndex(existing => existing.Id == entry.Id);
+            int index = _entries.FindIndex(existing => existing.Id == entry.Id);
             if (index < 0)
                 _entries.Add(entry);
             else

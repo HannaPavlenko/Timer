@@ -9,8 +9,8 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void StopwatchPausesAndResumesWithoutCountingPausedTime()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(12));
@@ -20,7 +20,7 @@ public sealed class TimerEngineTests
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(3));
-        var snapshot = timer.Update();
+        TimerSnapshot snapshot = timer.Update();
         Assert.AreEqual(TimerStatus.Running, snapshot.Status);
         Assert.AreEqual(TimeSpan.FromSeconds(15), snapshot.Elapsed);
     }
@@ -28,13 +28,13 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void CountUpStopsAtTargetEvenWhenRefreshIsLate()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureCountUp(TimeSpan.FromSeconds(10));
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(14));
-        var snapshot = timer.Update();
+        TimerSnapshot snapshot = timer.Update();
 
         Assert.AreEqual(TimerStatus.Completed, snapshot.Status);
         Assert.AreEqual(TimeSpan.FromSeconds(10), snapshot.Elapsed);
@@ -45,8 +45,8 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void CountdownCanResetAndRestartAfterCompletion()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureCountdown(TimeSpan.FromSeconds(20));
 
         timer.Start();
@@ -65,19 +65,19 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void IntervalsAdvanceAcrossSkippedRefreshes()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureIntervals(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), 3);
         timer.Start();
 
         clock.Advance(TimeSpan.FromSeconds(10));
-        var rest = timer.Update();
+        TimerSnapshot rest = timer.Update();
         Assert.AreEqual(IntervalPhase.Rest, rest.Phase);
         Assert.AreEqual(1, rest.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(5), rest.Remaining);
 
         clock.Advance(TimeSpan.FromSeconds(18));
-        var secondRest = timer.Update();
+        TimerSnapshot secondRest = timer.Update();
         Assert.AreEqual(IntervalPhase.Rest, secondRest.Phase);
         Assert.AreEqual(2, secondRest.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(2), secondRest.Remaining);
@@ -86,25 +86,25 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void PreparationRunsBeforeEveryWorkInterval()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureIntervals(TimeSpan.FromSeconds(7), TimeSpan.FromSeconds(10),
             TimeSpan.FromSeconds(5), 2);
 
-        var ready = timer.Update();
+        TimerSnapshot ready = timer.Update();
         Assert.AreEqual(IntervalPhase.Prepare, ready.Phase);
         Assert.AreEqual(TimeSpan.FromSeconds(7), ready.Remaining);
         Assert.AreEqual(TimeSpan.FromSeconds(44), ready.TotalDuration);
 
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(7));
-        var work = timer.Update();
+        TimerSnapshot work = timer.Update();
         Assert.AreEqual(IntervalPhase.Work, work.Phase);
         Assert.AreEqual(1, work.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(10), work.Remaining);
 
         clock.Advance(TimeSpan.FromSeconds(15));
-        var secondPreparation = timer.Update();
+        TimerSnapshot secondPreparation = timer.Update();
         Assert.AreEqual(IntervalPhase.Prepare, secondPreparation.Phase);
         Assert.AreEqual(2, secondPreparation.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(7), secondPreparation.Remaining);
@@ -114,7 +114,7 @@ public sealed class TimerEngineTests
         timer.Start();
 
         clock.Advance(TimeSpan.FromSeconds(8));
-        var secondWork = timer.Update();
+        TimerSnapshot secondWork = timer.Update();
         Assert.AreEqual(IntervalPhase.Work, secondWork.Phase);
         Assert.AreEqual(2, secondWork.Round);
         Assert.AreEqual(TimeSpan.FromSeconds(9), secondWork.Remaining);
@@ -126,8 +126,8 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void IntervalsFinishAfterFinalRest()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureIntervals(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), 2);
         timer.Start();
 
@@ -135,7 +135,7 @@ public sealed class TimerEngineTests
         Assert.AreEqual(IntervalPhase.Rest, timer.Update().Phase);
         Assert.AreEqual(TimeSpan.FromSeconds(5), timer.Update().Remaining);
         clock.Advance(TimeSpan.FromSeconds(5));
-        var snapshot = timer.Update();
+        TimerSnapshot snapshot = timer.Update();
 
         Assert.AreEqual(TimerStatus.Completed, snapshot.Status);
         Assert.AreEqual(IntervalPhase.Complete, snapshot.Phase);
@@ -147,13 +147,13 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void SingleRoundIncludesRestPhase()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureIntervals(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), 1);
         timer.Start();
 
         clock.Advance(TimeSpan.FromSeconds(10));
-        var snapshot = timer.Update();
+        TimerSnapshot snapshot = timer.Update();
 
         Assert.AreEqual(TimerStatus.Running, snapshot.Status);
         Assert.AreEqual(IntervalPhase.Rest, snapshot.Phase);
@@ -166,15 +166,15 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void IntervalsPauseWithinPhase()
     {
-        var clock = new ManualTimeProvider();
-        var timer = new TimerEngine(clock);
+        ManualTimeProvider clock = new ManualTimeProvider();
+        TimerEngine timer = new TimerEngine(clock);
         timer.ConfigureIntervals(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), 2);
         timer.Start();
         clock.Advance(TimeSpan.FromSeconds(12));
         timer.Pause();
         clock.Advance(TimeSpan.FromSeconds(20));
 
-        var snapshot = timer.Update();
+        TimerSnapshot snapshot = timer.Update();
         Assert.AreEqual(TimerStatus.Paused, snapshot.Status);
         Assert.AreEqual(IntervalPhase.Rest, snapshot.Phase);
         Assert.AreEqual(TimeSpan.FromSeconds(3), snapshot.Remaining);
@@ -183,7 +183,7 @@ public sealed class TimerEngineTests
     [TestMethod]
     public void InvalidSettingsDoNotReplaceCurrentSession()
     {
-        var timer = new TimerEngine(new ManualTimeProvider());
+        TimerEngine timer = new TimerEngine(new ManualTimeProvider());
         timer.ConfigureCountdown(TimeSpan.FromSeconds(30));
 
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => timer.ConfigureCountUp(TimeSpan.Zero));

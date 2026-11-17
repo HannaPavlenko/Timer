@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Android.Content;
 using Android.Media;
 using Timer.Core;
 
@@ -12,13 +13,13 @@ internal static class AndroidSound
     /// <summary>Plays a WAV cue and releases the player and temporary file afterwards.</summary>
     public static async Task PlayAsync(TimerSound sound)
     {
-        var context = global::Android.App.Application.Context;
-        var path = Path.Combine(context.CacheDir!.AbsolutePath, $"timer-{Guid.NewGuid():N}.wav");
+        Context context = global::Android.App.Application.Context;
+        string path = Path.Combine(context.CacheDir!.AbsolutePath, $"timer-{Guid.NewGuid():N}.wav");
         try
         {
             await File.WriteAllBytesAsync(path, TimerSoundAudio.CreateWave(sound)).ConfigureAwait(false);
-            using var player = new MediaPlayer();
-            var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            using MediaPlayer player = new MediaPlayer();
+            TaskCompletionSource completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
             player.Completion += (_, _) => completed.TrySetResult();
             player.Error += (_, args) =>
             {

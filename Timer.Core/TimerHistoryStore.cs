@@ -20,7 +20,7 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
     {
         lock (_sync)
         {
-            var entries = ReadEntries();
+            List<TimerHistoryEntry> entries = ReadEntries();
             if (TrimOldest(entries))
                 WriteEntries(entries);
             return entries;
@@ -31,8 +31,8 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
     {
         lock (_sync)
         {
-            var entries = ReadEntries();
-            var index = entries.FindIndex(existing => existing.Id == entry.Id);
+            List<TimerHistoryEntry> entries = ReadEntries();
+            int index = entries.FindIndex(existing => existing.Id == entry.Id);
             if (index < 0)
                 entries.Add(entry);
             else
@@ -47,7 +47,7 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
     {
         lock (_sync)
         {
-            var entries = ReadEntries();
+            List<TimerHistoryEntry> entries = ReadEntries();
             if (entries.RemoveAll(entry => entry.Id == id) == 0)
                 return false;
 
@@ -83,9 +83,9 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
 
     private void WriteEntries(List<TimerHistoryEntry> entries)
     {
-        var directory = Path.GetDirectoryName(Path.GetFullPath(_filePath))!;
+        string directory = Path.GetDirectoryName(Path.GetFullPath(_filePath))!;
         Directory.CreateDirectory(directory);
-        var temporaryPath = Path.Combine(directory, $"history-{Guid.NewGuid():N}.tmp");
+        string temporaryPath = Path.Combine(directory, $"history-{Guid.NewGuid():N}.tmp");
 
         try
         {

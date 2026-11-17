@@ -10,16 +10,16 @@ public sealed class SoundPlaybackTests
     [TestMethod]
     public async Task ConcurrentRequestsDoNotQueueExtraSounds()
     {
-        var pending = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var calls = 0;
+        TaskCompletionSource pending = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls = 0;
 
-        var player = new SoundPlayback(_ =>
+        SoundPlayback player = new SoundPlayback(_ =>
         {
             calls++;
             return pending.Task;
         });
 
-        var first = player.PlayAsync();
+        Task first = player.PlayAsync();
         Assert.IsFalse(first.IsCompleted);
 
         await player.PlayAsync();
@@ -36,9 +36,9 @@ public sealed class SoundPlaybackTests
     [DataRow(false)]
     public async Task AudioFailuresDoNotEscapeAndNextRequestCanPlay(bool synchronousFailure)
     {
-        var calls = 0;
+        int calls = 0;
 
-        var player = new SoundPlayback(_ =>
+        SoundPlayback player = new SoundPlayback(_ =>
         {
             calls++;
 

@@ -10,8 +10,8 @@ using Timer.Core;
 using Timer.ViewModels;
 using Timer.Views;
 
-var verifyInput = args.Length == 1 && args[0] == "verify-input";
-var width = 0;
+bool verifyInput = args.Length == 1 && args[0] == "verify-input";
+int width = 0;
 if (!verifyInput && (args.Length != 3 || !int.TryParse(args[1], out width) || width < 320))
 {
     Console.Error.WriteLine("Usage: Timer.Preview <stopwatch|countdown|intervals|history> <width> <output.png> | verify-input");
@@ -23,7 +23,7 @@ AppBuilder.Configure<Timer.App>()
     .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
     .SetupWithoutStarting();
 
-var previewStore = new PreviewHistoryStore();
+PreviewHistoryStore previewStore = new PreviewHistoryStore();
 if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
 {
     previewStore.Upsert(new TimerHistoryEntry(
@@ -40,7 +40,7 @@ if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase
         TimerHistoryStatus.Stopped, TimeSpan.FromMinutes(3), null,
         TimeSpan.Zero, TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(15), 4));
 }
-var viewModel = new MainViewModel(previewStore);
+MainViewModel viewModel = new MainViewModel(previewStore);
 if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
 {
     viewModel.StartOrPauseCommand.Execute(null);
@@ -49,7 +49,7 @@ if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase
 if (verifyInput)
 {
     viewModel.SelectCountUpCommand.Execute(null);
-    var inputWindow = new Window
+    Window inputWindow = new Window
     {
         Width = 520,
         Height = 800,
@@ -58,10 +58,10 @@ if (verifyInput)
     inputWindow.Show();
     Dispatcher.UIThread.RunJobs();
 
-    var inputs = inputWindow.GetVisualDescendants().OfType<DigitsOnlyTextBox>()
+    DigitsOnlyTextBox[] inputs = inputWindow.GetVisualDescendants().OfType<DigitsOnlyTextBox>()
         .Take(2).ToArray();
-    var success = inputs.Length == 2;
-    foreach (var input in inputs)
+    bool success = inputs.Length == 2;
+    foreach (DigitsOnlyTextBox input in inputs)
     {
         input.Text = "";
         input.Focus();
@@ -101,7 +101,7 @@ switch (args[0].ToLowerInvariant())
         return 1;
 }
 
-var window = new Window
+Window window = new Window
 {
     Width = width,
     Height = args[0].Equals("history", StringComparison.OrdinalIgnoreCase) ? 1250 : 800,
@@ -110,7 +110,7 @@ var window = new Window
 window.Show();
 Dispatcher.UIThread.RunJobs();
 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-var frame = window.CaptureRenderedFrame();
+WriteableBitmap? frame = window.CaptureRenderedFrame();
 if (frame is null)
 {
     Console.Error.WriteLine("The headless renderer did not produce a frame.");
@@ -130,7 +130,7 @@ sealed class PreviewHistoryStore : ITimerHistoryStore
 
     public void Upsert(TimerHistoryEntry entry)
     {
-        var index = _entries.FindIndex(existing => existing.Id == entry.Id);
+        int index = _entries.FindIndex(existing => existing.Id == entry.Id);
         if (index < 0)
             _entries.Add(entry);
         else

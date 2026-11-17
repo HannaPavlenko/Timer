@@ -12,7 +12,7 @@ public sealed class TimerHistorySession
         _store = store;
 
         // A previous process cannot still own a running timer session.
-        foreach (var entry in store.Load())
+        foreach (TimerHistoryEntry entry in store.Load())
         {
             if (entry.Status == TimerHistoryStatus.Running)
                 store.Upsert(entry with { Status = TimerHistoryStatus.Stopped });
@@ -39,7 +39,7 @@ public sealed class TimerHistorySession
               entry.Status == TimerHistoryStatus.Completed))
             throw new ArgumentException("This history entry cannot restart in its current state.", nameof(entry));
 
-        var restarted = entry with
+        TimerHistoryEntry restarted = entry with
         {
             StartedAtUtc = DateTimeOffset.UtcNow,
             Status = TimerHistoryStatus.Running,
@@ -55,7 +55,7 @@ public sealed class TimerHistorySession
         if (_current is null)
             return;
 
-        var status = snapshot.Status switch
+        TimerHistoryStatus status = snapshot.Status switch
         {
             TimerStatus.Running => TimerHistoryStatus.Running,
             TimerStatus.Paused => TimerHistoryStatus.Paused,
@@ -82,7 +82,7 @@ public sealed class TimerHistorySession
         if (_current is null)
             return;
 
-        var status = snapshot.Status == TimerStatus.Completed
+        TimerHistoryStatus status = snapshot.Status == TimerStatus.Completed
             ? TimerHistoryStatus.Completed
             : TimerHistoryStatus.Stopped;
         _current = _current with
@@ -97,15 +97,15 @@ public sealed class TimerHistorySession
 
     public void Rename(Guid id, string? name)
     {
-        var entry = _store.Load().FirstOrDefault(item => item.Id == id);
+        TimerHistoryEntry? entry = _store.Load().FirstOrDefault(item => item.Id == id);
         if (entry is null)
             return;
 
-        var normalized = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+        string? normalized = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
         if (entry.Name == normalized)
             return;
 
-        var renamed = entry with { Name = normalized };
+        TimerHistoryEntry renamed = entry with { Name = normalized };
         _store.Upsert(renamed);
         if (_current?.Id == id)
             _current = _current with { Name = normalized };
@@ -113,10 +113,10 @@ public sealed class TimerHistorySession
 
     public bool Delete(Guid id)
     {
-        var wasCurrent = _current?.Id == id;
+        bool wasCurrent = _current?.Id == id;
         if (wasCurrent)
             _current = null;
-        var deleted = _store.Delete(id);
+        bool deleted = _store.Delete(id);
         return deleted || wasCurrent;
     }
 }

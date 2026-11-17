@@ -94,8 +94,8 @@ public sealed class TimerEngine
 
     public TimerSnapshot Update()
     {
-        var totalElapsed = CurrentElapsed();
-        var totalDuration = SessionDuration();
+        TimeSpan totalElapsed = CurrentElapsed();
+        TimeSpan? totalDuration = SessionDuration();
 
         if (totalDuration is { } limit && totalElapsed >= limit)
         {
@@ -121,22 +121,22 @@ public sealed class TimerEngine
             return new(_mode, _status, IntervalPhase.Complete, _rounds, _rounds,
                 _rest, TimeSpan.Zero, _rest, totalElapsed, totalDuration);
 
-        var cycleTicks = checked(_preparation.Ticks + _work.Ticks + _rest.Ticks);
-        var completedCycles = totalElapsed.Ticks / cycleTicks;
-        var offsetTicks = totalElapsed.Ticks % cycleTicks;
-        var round = checked((int)completedCycles + 1);
+        long cycleTicks = checked(_preparation.Ticks + _work.Ticks + _rest.Ticks);
+        long completedCycles = totalElapsed.Ticks / cycleTicks;
+        long offsetTicks = totalElapsed.Ticks % cycleTicks;
+        int round = checked((int)completedCycles + 1);
 
         if (offsetTicks < _preparation.Ticks)
         {
-            var preparationElapsed = TimeSpan.FromTicks(offsetTicks);
+            TimeSpan preparationElapsed = TimeSpan.FromTicks(offsetTicks);
             return new(_mode, _status, IntervalPhase.Prepare, round, _rounds,
                 preparationElapsed, _preparation - preparationElapsed, _preparation, totalElapsed, totalDuration);
         }
 
         offsetTicks -= _preparation.Ticks;
-        var isWork = offsetTicks < _work.Ticks;
-        var phaseDuration = isWork ? _work : _rest;
-        var phaseElapsed = isWork
+        bool isWork = offsetTicks < _work.Ticks;
+        TimeSpan phaseDuration = isWork ? _work : _rest;
+        TimeSpan phaseElapsed = isWork
             ? TimeSpan.FromTicks(offsetTicks)
             : TimeSpan.FromTicks(offsetTicks - _work.Ticks);
 

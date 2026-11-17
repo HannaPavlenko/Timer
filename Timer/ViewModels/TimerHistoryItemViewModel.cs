@@ -60,7 +60,7 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
         get => _name;
         set
         {
-            var name = value ?? string.Empty;
+            string name = value ?? string.Empty;
             if (SetProperty(ref _name, name))
                 _rename(Id, name);
         }
@@ -85,10 +85,10 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
 
     private static string FormatTime(TimeSpan time)
     {
-        var totalSeconds = (long)time.TotalSeconds;
-        var hours = totalSeconds / 3600;
-        var minutes = totalSeconds % 3600 / 60;
-        var seconds = totalSeconds % 60;
+        long totalSeconds = (long)time.TotalSeconds;
+        long hours = totalSeconds / 3600;
+        long minutes = totalSeconds % 3600 / 60;
+        long seconds = totalSeconds % 60;
         return hours > 0
             ? $"{hours:00}:{minutes:00}:{seconds:00}"
             : $"{minutes:00}:{seconds:00}";

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -343,7 +344,7 @@ public partial class MainViewModel : ViewModelBase
         _status = TimerStatus.Ready;
         if (mode is TimerMode.CountUp or TimerMode.Countdown)
         {
-            var (minutes, seconds) = mode == TimerMode.CountUp
+            (string minutes, string seconds) = mode == TimerMode.CountUp
                 ? _countUpDuration
                 : _countdownDuration;
             DurationMinutes = minutes;
@@ -402,7 +403,7 @@ public partial class MainViewModel : ViewModelBase
 
         if (_selectedMode is TimerMode.CountUp or TimerMode.Countdown)
         {
-            if (!TryDuration(DurationMinutes, DurationSeconds, out var duration))
+            if (!TryDuration(DurationMinutes, DurationSeconds, out TimeSpan duration))
             {
                 ErrorMessage = "Enter a duration from 1 second to 999 minutes 59 seconds.";
                 return false;
@@ -415,10 +416,10 @@ public partial class MainViewModel : ViewModelBase
             return true;
         }
 
-        if (!TryDuration(PreparationMinutes, PreparationSeconds, out var preparation, allowZero: true) ||
-            !TryDuration(WorkMinutes, WorkSeconds, out var work) ||
-            !TryDuration(RestMinutes, RestSeconds, out var rest) ||
-            !int.TryParse(Rounds, NumberStyles.None, CultureInfo.InvariantCulture, out var rounds) ||
+        if (!TryDuration(PreparationMinutes, PreparationSeconds, out TimeSpan preparation, allowZero: true) ||
+            !TryDuration(WorkMinutes, WorkSeconds, out TimeSpan work) ||
+            !TryDuration(RestMinutes, RestSeconds, out TimeSpan rest) ||
+            !int.TryParse(Rounds, NumberStyles.None, CultureInfo.InvariantCulture, out int rounds) ||
             rounds is < 1 or > 99)
         {
             ErrorMessage = "Enter valid preparation, work and rest times, and 1 to 99 rounds.";
@@ -431,9 +432,9 @@ public partial class MainViewModel : ViewModelBase
 
     private void Refresh()
     {
-        var previousStatus = _status;
-        var snapshot = _engine.Update();
-        var requestSound = ObserveSoundBoundary(snapshot);
+        TimerStatus previousStatus = _status;
+        TimerSnapshot snapshot = _engine.Update();
+        bool requestSound = ObserveSoundBoundary(snapshot);
         _history.Update(snapshot);
         _status = snapshot.Status;
         if (snapshot.Status == TimerStatus.Completed && previousStatus != TimerStatus.Completed)
@@ -443,7 +444,7 @@ public partial class MainViewModel : ViewModelBase
         }
         else if (snapshot.Status == TimerStatus.Running && _history.CurrentEntryId is { } currentId)
         {
-            foreach (var item in HistoryItems)
+            foreach (TimerHistoryItemViewModel item in HistoryItems)
             {
                 if (item.Id != currentId)
                     continue;
@@ -512,7 +513,7 @@ public partial class MainViewModel : ViewModelBase
 
     private bool ObserveSoundBoundary(TimerSnapshot snapshot)
     {
-        var previous = _soundSnapshot;
+        TimerSnapshot? previous = _soundSnapshot;
         _soundSnapshot = snapshot;
 
         if (IsSoundEnabled && previous is null && snapshot.Mode == TimerMode.Intervals &&
@@ -606,7 +607,7 @@ public partial class MainViewModel : ViewModelBase
 
     private void RestartHistoryEntry(TimerHistoryEntry entry)
     {
-        var savedEntry = _historyStore.Load().FirstOrDefault(item => item.Id == entry.Id);
+        TimerHistoryEntry? savedEntry = _historyStore.Load().FirstOrDefault(item => item.Id == entry.Id);
         if (savedEntry is null)
             return;
         entry = savedEntry;
@@ -664,8 +665,8 @@ public partial class MainViewModel : ViewModelBase
     private void ReloadHistory()
     {
         HistoryItems.Clear();
-        var entries = _historyStore.Load().OrderByDescending(entry => entry.StartedAtUtc).ToList();
-        for (var index = 0; index < entries.Count; index++)
+        List<TimerHistoryEntry> entries = _historyStore.Load().OrderByDescending(entry => entry.StartedAtUtc).ToList();
+        for (int index = 0; index < entries.Count; index++)
         {
             if (entries[index].Mode == _selectedMode)
                 HistoryItems.Add(new TimerHistoryItemViewModel(entries[index], DeleteHistoryEntry,
@@ -678,10 +679,10 @@ public partial class MainViewModel : ViewModelBase
 
     private TimerHistoryEntry CreateHistoryEntry(TimerSnapshot snapshot)
     {
-        var preparation = TimeSpan.Zero;
-        var work = TimeSpan.Zero;
-        var rest = TimeSpan.Zero;
-        var rounds = 0;
+        TimeSpan preparation = TimeSpan.Zero;
+        TimeSpan work = TimeSpan.Zero;
+        TimeSpan rest = TimeSpan.Zero;
+        int rounds = 0;
 
         if (snapshot.Mode == TimerMode.Intervals)
         {
@@ -710,8 +711,8 @@ public partial class MainViewModel : ViewModelBase
         duration = TimeSpan.Zero;
         minutesText = string.IsNullOrEmpty(minutesText) ? "0" : minutesText;
         secondsText = string.IsNullOrEmpty(secondsText) ? "0" : secondsText;
-        if (!int.TryParse(minutesText, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes) ||
-            !int.TryParse(secondsText, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds) ||
+        if (!int.TryParse(minutesText, NumberStyles.None, CultureInfo.InvariantCulture, out int minutes) ||
+            !int.TryParse(secondsText, NumberStyles.None, CultureInfo.InvariantCulture, out int seconds) ||
             minutes is < 0 or > 999 || seconds is < 0 or > 59 ||
             !allowZero && minutes == 0 && seconds == 0)
             return false;
@@ -722,13 +723,13 @@ public partial class MainViewModel : ViewModelBase
 
     private static string FormatTime(TimeSpan time, bool roundUp = false)
     {
-        var totalSeconds = time.Ticks / TimeSpan.TicksPerSecond;
+        long totalSeconds = time.Ticks / TimeSpan.TicksPerSecond;
         if (roundUp && time.Ticks % TimeSpan.TicksPerSecond != 0)
             totalSeconds++;
 
-        var hours = totalSeconds / 3600;
-        var minutes = totalSeconds % 3600 / 60;
-        var seconds = totalSeconds % 60;
+        long hours = totalSeconds / 3600;
+        long minutes = totalSeconds % 3600 / 60;
+        long seconds = totalSeconds % 60;
         if (hours > 0)
             return $"{hours:00}:{minutes:00}:{seconds:00}";
 

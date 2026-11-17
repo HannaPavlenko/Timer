@@ -12,19 +12,19 @@ public sealed class SoundTests
     [TestMethod]
     public void SoundPreferencePersistsAcrossModesAndInstances()
     {
-        var filePath = Path.Combine(Path.GetTempPath(), $"stilltime-sound-{Guid.NewGuid():N}.json");
+        string filePath = Path.Combine(Path.GetTempPath(), $"stilltime-sound-{Guid.NewGuid():N}.json");
         try
         {
-            var store = new SoundSettingsStore(filePath);
+            SoundSettingsStore store = new SoundSettingsStore(filePath);
             Assert.IsFalse(store.Load());
 
-            var viewModel = new MainViewModel(new MemoryHistoryStore(), store);
+            MainViewModel viewModel = new MainViewModel(new MemoryHistoryStore(), store);
             Assert.IsFalse(viewModel.IsSoundEnabled);
             viewModel.IsSoundEnabled = true;
             viewModel.SelectIntervalsCommand.Execute(null);
             Assert.IsTrue(viewModel.IsSoundEnabled);
 
-            var reopened = new MainViewModel(new MemoryHistoryStore(), new SoundSettingsStore(filePath));
+            MainViewModel reopened = new MainViewModel(new MemoryHistoryStore(), new SoundSettingsStore(filePath));
             Assert.IsTrue(reopened.IsSoundEnabled);
             reopened.IsSoundEnabled = false;
             Assert.IsFalse(new SoundSettingsStore(filePath).Load());
@@ -43,13 +43,13 @@ public sealed class SoundTests
     [DataRow(TimerMode.Countdown, false)]
     public void TimedModesRequestOneSoundPerCompletion(TimerMode mode, bool soundEnabled)
     {
-        var clock = new ManualClock();
-        var viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
+        ManualClock clock = new ManualClock();
+        MainViewModel viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
         viewModel.SelectedModeIndex = (int)mode;
         viewModel.DurationSeconds = "2";
         viewModel.IsSoundEnabled = soundEnabled;
 
-        var signals = 0;
+        int signals = 0;
         viewModel.SoundRequested += (_, _) => signals++;
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual(0, signals);
@@ -73,8 +73,8 @@ public sealed class SoundTests
     [DataRow(3)]
     public void IntervalsRequestSoundAtEveryObservedBoundary(int preparationSeconds)
     {
-        var clock = new ManualClock();
-        var viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
+        ManualClock clock = new ManualClock();
+        MainViewModel viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
         viewModel.SelectIntervalsCommand.Execute(null);
         viewModel.PreparationSeconds = preparationSeconds.ToString();
         viewModel.WorkSeconds = "4";
@@ -82,14 +82,14 @@ public sealed class SoundTests
         viewModel.Rounds = "2";
         viewModel.IsSoundEnabled = true;
 
-        var signals = 0;
-        var cues = new List<TimerSound>();
+        int signals = 0;
+        List<TimerSound> cues = new List<TimerSound>();
         viewModel.SoundRequested += (_, args) => cues.Add(args.Sound);
         viewModel.SoundRequested += (_, _) => signals++;
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual(1, signals);
 
-        var expected = 1;
+        int expected = 1;
         viewModel.StartOrPauseCommand.Execute(null);
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual(1, signals);
@@ -101,8 +101,8 @@ public sealed class SoundTests
             Assert.AreEqual(++expected, signals);
         }
 
-        var durations = preparationSeconds > 0 ? new[] {4, 5, preparationSeconds, 4, 5} : new[] {4, 5, 4, 5};
-        foreach (var duration in durations)
+        int[] durations = preparationSeconds > 0 ? new[] {4, 5, preparationSeconds, 4, 5} : new[] {4, 5, 4, 5};
+        foreach (int duration in durations)
         {
             clock.Advance(duration);
             viewModel.ResumeUpdates();
@@ -112,7 +112,7 @@ public sealed class SoundTests
         }
 
         Assert.AreEqual("FINISHED", viewModel.StatusLabel);
-        var expectedCues = preparationSeconds > 0
+        TimerSound[] expectedCues = preparationSeconds > 0
             ? new[] {TimerSound.Prepare, TimerSound.Work, TimerSound.Rest, TimerSound.Prepare,
                 TimerSound.Work, TimerSound.Rest, TimerSound.Gong}
             : new[] {TimerSound.Work, TimerSound.Rest, TimerSound.Work, TimerSound.Rest, TimerSound.Gong};
@@ -125,13 +125,13 @@ public sealed class SoundTests
     [TestMethod]
     public void PauseResetAndModeSwitchAreSilent()
     {
-        var clock = new ManualClock();
-        var viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
+        ManualClock clock = new ManualClock();
+        MainViewModel viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationSeconds = "10";
         viewModel.IsSoundEnabled = true;
 
-        var signals = 0;
+        int signals = 0;
         viewModel.SoundRequested += (_, _) => signals++;
         viewModel.StartOrPauseCommand.Execute(null);
         clock.Advance(1);
@@ -152,13 +152,13 @@ public sealed class SoundTests
     [TestMethod]
     public void EnablingSoundDoesNotReplayMutedBoundaries()
     {
-        var clock = new ManualClock();
-        var viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
+        ManualClock clock = new ManualClock();
+        MainViewModel viewModel = new MainViewModel(new MemoryHistoryStore(), timeProvider: clock);
         viewModel.SelectIntervalsCommand.Execute(null);
         viewModel.WorkSeconds = "2";
         viewModel.RestSeconds = "2";
 
-        var signals = 0;
+        int signals = 0;
         viewModel.SoundRequested += (_, _) => signals++;
         viewModel.StartOrPauseCommand.Execute(null);
         clock.Advance(2);
@@ -189,7 +189,7 @@ public sealed class SoundTests
 
         public void Upsert(TimerHistoryEntry entry)
         {
-            var index = _entries.FindIndex(existing => existing.Id == entry.Id);
+            int index = _entries.FindIndex(existing => existing.Id == entry.Id);
             if (index < 0)
                 _entries.Add(entry);
             else

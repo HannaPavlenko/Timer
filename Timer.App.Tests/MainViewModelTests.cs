@@ -12,7 +12,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void NumericTimeInputKeepsOnlyAsciiDigits()
     {
-        var input = new DigitsOnlyTextBox { Text = "вап12a3" };
+        DigitsOnlyTextBox input = new DigitsOnlyTextBox { Text = "вап12a3" };
 
         Assert.AreEqual(typeof(TextBox), input.StyleKey);
         Assert.AreEqual("123", input.Text);
@@ -23,7 +23,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void CountdownShowsPresetAndRejectsInvalidSeconds()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         viewModel.SelectCountdownCommand.Execute(null);
         viewModel.DurationMinutes = "5";
 
@@ -42,7 +42,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void StartPauseResumeAndResetUpdateControls()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "0";
         viewModel.DurationSeconds = "5";
@@ -68,7 +68,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void SwitchingModesResetsTheSession()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         Assert.IsFalse(viewModel.HasDetailLabel);
         viewModel.StartOrPauseCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
@@ -94,7 +94,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void CountUpAndCountdownKeepSeparateTargets()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "1";
         viewModel.DurationSeconds = "20";
@@ -118,7 +118,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void SixSecondsStartsWithEmptyMinutesInBothDurationModes()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationMinutes = "";
         viewModel.DurationSeconds = "6";
@@ -141,8 +141,8 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void HistoryPersistsAcrossViewModelsAndDeleteRemovesAnActiveEntry()
     {
-        var store = new MemoryHistoryStore();
-        var viewModel = new MainViewModel(store);
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        MainViewModel viewModel = new MainViewModel(store);
         Assert.IsTrue(viewModel.HasNoHistory);
 
         viewModel.SelectCountUpCommand.Execute(null);
@@ -153,7 +153,7 @@ public sealed class MainViewModelTests
         Assert.IsFalse(viewModel.HistoryItems[0].HasSettingsLabel);
         Assert.AreEqual("00:06", viewModel.HistoryItems[0].DurationLabel);
 
-        var reopened = new MainViewModel(store);
+        MainViewModel reopened = new MainViewModel(store);
         Assert.IsTrue(reopened.HasNoHistory);
         reopened.SelectCountUpCommand.Execute(null);
         Assert.AreEqual("Stopped", reopened.HistoryItems[0].StatusLabel);
@@ -169,13 +169,13 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void HistoryShowsOnlyTheSelectedModeAndKeepsOtherModesAfterDeletion()
     {
-        var store = new MemoryHistoryStore();
-        foreach (var mode in Enum.GetValues<TimerMode>())
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        foreach (TimerMode mode in Enum.GetValues<TimerMode>())
             store.Upsert(new TimerHistoryEntry(
                 Guid.NewGuid(), mode, DateTimeOffset.UtcNow,
                 TimerHistoryStatus.Stopped, TimeSpan.FromSeconds(2)));
 
-        var viewModel = new MainViewModel(store);
+        MainViewModel viewModel = new MainViewModel(store);
         Assert.AreEqual(1, viewModel.HistoryItems.Count);
         Assert.AreEqual("Stopwatch", viewModel.HistoryItems[0].ModeLabel);
 
@@ -196,14 +196,14 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void RestartUsesSavedTargetAndReusesHistoryEntry()
     {
-        foreach (var mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
+        foreach (TimerMode mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
         {
-            var store = new MemoryHistoryStore();
-            var saved = new TimerHistoryEntry(
+            MemoryHistoryStore store = new MemoryHistoryStore();
+            TimerHistoryEntry saved = new TimerHistoryEntry(
                 Guid.NewGuid(), mode, DateTimeOffset.UtcNow.AddMinutes(-5),
                 TimerHistoryStatus.Stopped, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(6));
             store.Upsert(saved);
-            var viewModel = new MainViewModel(store);
+            MainViewModel viewModel = new MainViewModel(store);
             viewModel.SelectedModeIndex = (int)mode;
             viewModel.DurationSeconds = "20";
             viewModel.StartOrPauseCommand.Execute(null);
@@ -232,7 +232,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void RestartRestoresIntervalSettingsAndStopwatchCanRestart()
     {
-        var store = new MemoryHistoryStore();
+        MemoryHistoryStore store = new MemoryHistoryStore();
         store.Upsert(new TimerHistoryEntry(
             Guid.NewGuid(), TimerMode.Stopwatch, DateTimeOffset.UtcNow.AddMinutes(-10),
             TimerHistoryStatus.Stopped, TimeSpan.FromSeconds(3)));
@@ -241,7 +241,7 @@ public sealed class MainViewModelTests
             TimerHistoryStatus.Stopped, TimeSpan.FromSeconds(30), null,
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(15), 4));
 
-        var viewModel = new MainViewModel(store);
+        MainViewModel viewModel = new MainViewModel(store);
         Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         viewModel.HistoryItems[0].RestartCommand.Execute(null);
         Assert.AreEqual("RUNNING", viewModel.StatusLabel);
@@ -254,7 +254,7 @@ public sealed class MainViewModelTests
         Assert.AreEqual("15", viewModel.RestSeconds);
         Assert.AreEqual("4", viewModel.Rounds);
         Assert.AreEqual(2, store.Load().Count);
-        var restarted = store.Load()[1];
+        TimerHistoryEntry restarted = store.Load()[1];
         Assert.AreEqual(TimerMode.Intervals, restarted.Mode);
         Assert.AreEqual(TimeSpan.FromSeconds(10), restarted.Preparation);
         Assert.AreEqual(TimeSpan.FromSeconds(45), restarted.Work);
@@ -268,14 +268,14 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void PausedHistoryRestartUsesTheSameEntry()
     {
-        var store = new MemoryHistoryStore();
-        var viewModel = new MainViewModel(store);
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.SelectCountUpCommand.Execute(null);
         viewModel.DurationSeconds = "6";
         viewModel.StartOrPauseCommand.Execute(null);
         viewModel.StartOrPauseCommand.Execute(null);
 
-        var paused = viewModel.HistoryItems[0];
+        TimerHistoryItemViewModel paused = viewModel.HistoryItems[0];
         Assert.IsTrue(paused.CanRestart);
         Assert.IsFalse(paused.ShowStatus);
         Assert.AreEqual(TimerHistoryStatus.Paused, store.Load()[0].Status);
@@ -296,10 +296,10 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void RunningHistoryStopEndsOnlyItsOwnTimer()
     {
-        var store = new MemoryHistoryStore();
-        var viewModel = new MainViewModel(store);
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.StartOrPauseCommand.Execute(null);
-        var first = viewModel.HistoryItems[0];
+        TimerHistoryItemViewModel first = viewModel.HistoryItems[0];
         Assert.IsTrue(first.CanStop);
         Assert.IsFalse(first.ShowStatus);
 
@@ -322,13 +322,13 @@ public sealed class MainViewModelTests
     [DataRow(TimerMode.Countdown)]
     public void CompletedDurationTimerRestartsAndStopsInTheSameRow(TimerMode mode)
     {
-        var store = new MemoryHistoryStore();
-        var completed = new TimerHistoryEntry(Guid.NewGuid(), mode,
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        TimerHistoryEntry completed = new TimerHistoryEntry(Guid.NewGuid(), mode,
             DateTimeOffset.UtcNow.AddMinutes(-5), TimerHistoryStatus.Completed,
             TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10),
             EndedAtUtc: DateTimeOffset.UtcNow.AddMinutes(-4));
         store.Upsert(completed);
-        var viewModel = new MainViewModel(store);
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.SelectedModeIndex = (int)mode;
 
         Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
@@ -352,18 +352,27 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void EveryModeShowsNewestLaunchFirstWithoutChangingStorageOrder()
     {
-        foreach (var mode in Enum.GetValues<TimerMode>())
+        foreach (TimerMode mode in Enum.GetValues<TimerMode>())
         {
-            var store = new MemoryHistoryStore();
-            var later = new TimerHistoryEntry(Guid.NewGuid(), mode,
+            MemoryHistoryStore store = new MemoryHistoryStore();
+            TimerHistoryEntry later = new TimerHistoryEntry(Guid.NewGuid(), mode,
                 new DateTimeOffset(2026, 11, 5, 20, 9, 0, TimeSpan.Zero),
                 TimerHistoryStatus.Stopped, TimeSpan.Zero);
-            var earlier = later with { Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddHours(-2) };
-            var previousDay = later with { Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddDays(-1) };
+
+                        TimerHistoryEntry earlier = later with
+            {
+                Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddHours(-2)
+            };
+
+            TimerHistoryEntry previousDay = later with
+            {
+                Id = Guid.NewGuid(), StartedAtUtc = later.StartedAtUtc.AddDays(-1)
+            };
+
             store.Upsert(later);
             store.Upsert(earlier);
             store.Upsert(previousDay);
-            var viewModel = new MainViewModel(store);
+            MainViewModel viewModel = new MainViewModel(store);
             viewModel.SelectedModeIndex = (int)mode;
 
             CollectionAssert.AreEqual(new[] { later.Id, earlier.Id, previousDay.Id },
@@ -376,11 +385,11 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void StopClearsSecondsButRestartKeepsSavedTarget()
     {
-        foreach (var mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
+        foreach (TimerMode mode in new[] { TimerMode.CountUp, TimerMode.Countdown })
         {
-            var store = new MemoryHistoryStore();
-            var viewModel = new MainViewModel(store);
-            var otherMode = mode == TimerMode.CountUp ? TimerMode.Countdown : TimerMode.CountUp;
+            MemoryHistoryStore store = new MemoryHistoryStore();
+            MainViewModel viewModel = new MainViewModel(store);
+            TimerMode otherMode = mode == TimerMode.CountUp ? TimerMode.Countdown : TimerMode.CountUp;
             viewModel.SelectedModeIndex = (int)otherMode;
             viewModel.DurationSeconds = "25";
             viewModel.SelectedModeIndex = (int)mode;
@@ -414,8 +423,8 @@ public sealed class MainViewModelTests
     [DataRow(TimerMode.Countdown)]
     public async Task CompletionClearsInputsAndStartAgainReusesTarget(TimerMode mode)
     {
-        var store = new MemoryHistoryStore();
-        var viewModel = new MainViewModel(store);
+        MemoryHistoryStore store = new MemoryHistoryStore();
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.SelectedModeIndex = (int)mode;
         viewModel.DurationSeconds = "1";
         viewModel.StartOrPauseCommand.Execute(null);
@@ -441,7 +450,7 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void IntervalsStartPauseAndResetWithDefaultRoundCount()
     {
-        var viewModel = CreateViewModel();
+        MainViewModel viewModel = CreateViewModel();
         viewModel.SelectIntervalsCommand.Execute(null);
         viewModel.PreparationSeconds = "5";
         viewModel.WorkSeconds = "5";
@@ -473,16 +482,16 @@ public sealed class MainViewModelTests
     [TestMethod]
     public void CompletedIntervalsRestartAndStopWithoutDuplicatingHistory()
     {
-        var store = new MemoryHistoryStore();
+        MemoryHistoryStore store = new MemoryHistoryStore();
 
-        var completed = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
+        TimerHistoryEntry completed = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
             DateTimeOffset.UtcNow.AddMinutes(-5), TimerHistoryStatus.Completed, TimeSpan.FromSeconds(30),
             Preparation: TimeSpan.FromSeconds(5), Work: TimeSpan.FromSeconds(10),
             Rest: TimeSpan.FromSeconds(5), Rounds: 2, Name: "Training");
 
         store.Upsert(completed);
 
-        var viewModel = new MainViewModel(store);
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.SelectIntervalsCommand.Execute(null);
         Assert.IsTrue(viewModel.HistoryItems[0].CanRestart);
         Assert.IsFalse(viewModel.HistoryItems[0].ShowStatus);
@@ -512,16 +521,16 @@ public sealed class MainViewModelTests
     [DataRow(false)]
     public async Task IntervalsKeepInputsOnCompletionUntilReset(bool restartSaved)
     {
-        var store = new MemoryHistoryStore();
+        MemoryHistoryStore store = new MemoryHistoryStore();
 
-        var saved = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
+        TimerHistoryEntry saved = new TimerHistoryEntry(Guid.NewGuid(), TimerMode.Intervals,
             DateTimeOffset.UtcNow.AddMinutes(-1), TimerHistoryStatus.Completed, TimeSpan.FromSeconds(1),
             Work: TimeSpan.FromSeconds(1), Rest: TimeSpan.FromSeconds(1), Rounds: 1);
 
         if (restartSaved)
             store.Upsert(saved);
 
-        var viewModel = new MainViewModel(store);
+        MainViewModel viewModel = new MainViewModel(store);
         viewModel.SelectIntervalsCommand.Execute(null);
         if (restartSaved)
             viewModel.HistoryItems[0].RestartCommand.Execute(null);
@@ -572,7 +581,7 @@ public sealed class MainViewModelTests
 
         public void Upsert(TimerHistoryEntry entry)
         {
-            var index = _entries.FindIndex(existing => existing.Id == entry.Id);
+            int index = _entries.FindIndex(existing => existing.Id == entry.Id);
             if (index < 0)
                 _entries.Add(entry);
             else

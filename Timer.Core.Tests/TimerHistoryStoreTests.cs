@@ -10,16 +10,16 @@ public sealed class TimerHistoryStoreTests
     [TestMethod]
     public void SavesUpdatesAndDeletesEntriesAcrossStoreInstances()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
-        var path = Path.Combine(directory, "history.json");
+        string directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(directory, "history.json");
 
         try
         {
-            var store = new TimerHistoryStore(path);
+            TimerHistoryStore store = new TimerHistoryStore(path);
             Assert.AreEqual(0, store.Load().Count);
 
-            var first = NewEntry(TimerMode.CountUp) with { Target = TimeSpan.FromSeconds(6) };
-            var second = NewEntry(TimerMode.Intervals) with
+            TimerHistoryEntry first = NewEntry(TimerMode.CountUp) with { Target = TimeSpan.FromSeconds(6) };
+            TimerHistoryEntry second = NewEntry(TimerMode.Intervals) with
             {
                 Preparation = TimeSpan.Zero,
                 Work = TimeSpan.FromSeconds(45),
@@ -30,10 +30,10 @@ public sealed class TimerHistoryStoreTests
             store.Upsert(first);
             store.Upsert(second);
 
-            var reopened = new TimerHistoryStore(path);
+            TimerHistoryStore reopened = new TimerHistoryStore(path);
             CollectionAssert.AreEqual(new[] { first, second }, reopened.Load().ToArray());
 
-            var paused = first with
+            TimerHistoryEntry paused = first with
             {
                 Status = TimerHistoryStatus.Paused,
                 Elapsed = TimeSpan.FromSeconds(3)
@@ -55,14 +55,14 @@ public sealed class TimerHistoryStoreTests
     [TestMethod]
     public void InvalidJsonDoesNotGetOverwritten()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
-        var path = Path.Combine(directory, "history.json");
+        string directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(directory, "history.json");
 
         try
         {
             Directory.CreateDirectory(directory);
             File.WriteAllText(path, "{invalid json");
-            var store = new TimerHistoryStore(path);
+            TimerHistoryStore store = new TimerHistoryStore(path);
 
             Assert.ThrowsExactly<InvalidDataException>(() => store.Upsert(NewEntry(TimerMode.Stopwatch)));
             Assert.AreEqual("{invalid json", File.ReadAllText(path));
@@ -77,22 +77,22 @@ public sealed class TimerHistoryStoreTests
     [TestMethod]
     public void EleventhEntryEvictsFirstEvenAfterRestart()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
-        var path = Path.Combine(directory, "history.json");
+        string directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(directory, "history.json");
         try
         {
-            var store = new TimerHistoryStore(path);
-            var entries = Enumerable.Range(0, 10)
+            TimerHistoryStore store = new TimerHistoryStore(path);
+            TimerHistoryEntry[] entries = Enumerable.Range(0, 10)
                 .Select(i => NewEntry((TimerMode)(i % 4))).ToArray();
-            foreach (var entry in entries)
+            foreach (TimerHistoryEntry entry in entries)
                 store.Upsert(entry);
             store.Upsert(entries[0] with { StartedAtUtc = DateTimeOffset.UtcNow });
             Assert.AreEqual(10, store.Load().Count);
             Assert.AreEqual(entries[0].Id, store.Load()[0].Id);
 
-            var next = NewEntry(TimerMode.Stopwatch);
+            TimerHistoryEntry next = NewEntry(TimerMode.Stopwatch);
             store.Upsert(next);
-            var reopened = new TimerHistoryStore(path).Load();
+            IReadOnlyList<TimerHistoryEntry> reopened = new TimerHistoryStore(path).Load();
             CollectionAssert.AreEqual(entries.Skip(1).Append(next).Select(e => e.Id).ToArray(),
                 reopened.Select(e => e.Id).ToArray());
         }
@@ -106,14 +106,14 @@ public sealed class TimerHistoryStoreTests
     [TestMethod]
     public void LoadingOlderHistoryPersistsOnlyLastTenEntries()
     {
-        var directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
-        var path = Path.Combine(directory, "history.json");
+        string directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(directory, "history.json");
         try
         {
             Directory.CreateDirectory(directory);
-            var entries = Enumerable.Range(0, 20).Select(_ => NewEntry(TimerMode.Stopwatch)).ToArray();
+            TimerHistoryEntry[] entries = Enumerable.Range(0, 20).Select(_ => NewEntry(TimerMode.Stopwatch)).ToArray();
             File.WriteAllText(path, JsonSerializer.Serialize(entries));
-            var loaded = new TimerHistoryStore(path).Load();
+            IReadOnlyList<TimerHistoryEntry> loaded = new TimerHistoryStore(path).Load();
             CollectionAssert.AreEqual(entries.Skip(10).ToArray(), loaded.ToArray());
             Assert.AreEqual(10, JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(path))!.Count);
         }
