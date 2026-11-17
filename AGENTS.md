@@ -2,6 +2,21 @@
 
 Этот файл относится ко всему репозиторию. Читай его перед изменениями и обновляй при согласованных изменениях поведения или рабочего процесса. Актуальные указания пользователя имеют приоритет над описанными здесь предпочтениями.
 
+## Codex models and delegation
+
+- Use GPT-6.1 Sol (`gpt-6.1-sol`, medium) as the main model for implementation, debugging, routine
+  verification, and integration. Keep small or tightly coupled tasks with the main agent.
+- Delegate independent, narrowly scoped repository research to GPT-6 Luna (`gpt-6-luna`, low) when
+  it saves work. Examples include tracing callers, locating relevant tests, and mapping API or
+  database entry points. Give each subagent a specific question and the minimum relevant context.
+- Delegate user-requested code reviews to GPT-6 Astra (`gpt-6-astra`, medium) by default. During
+  implementation, use Astra for independent review of high-risk changes such as migrations that
+  rewrite existing data, or for an architectural decision Sol cannot resolve from the evidence.
+  Use high reasoning effort when the review involves subtle cross-layer invariants or data-loss risk.
+- The main agent verifies subagent findings against the code, runs relevant checks, and reports the
+  result. If a requested reviewer model is unavailable, say so before using a fallback and name the
+  model that actually performed the review.
+
 ## Цель и общение
 
 - Stilltime — демонстрационный проект для резюме: таймер на Avalonia UI для Windows и Android.
