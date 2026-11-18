@@ -8,6 +8,8 @@ namespace Timer.Controls;
 
 public sealed class DigitsOnlyTextBox : TextBox
 {
+    private bool _clearedZero;
+
     public DigitsOnlyTextBox()
     {
         AddHandler(TextInputEvent, RejectNonDigitTextInput, RoutingStrategies.Tunnel);
@@ -16,6 +18,37 @@ public sealed class DigitsOnlyTextBox : TextBox
     }
 
     protected override Type StyleKeyOverride => typeof(TextBox);
+
+    protected override void OnGotFocus(FocusChangedEventArgs e)
+    {
+        base.OnGotFocus(e);
+        ClearZeroForEditing();
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (IsFocused)
+            ClearZeroForEditing();
+    }
+
+    protected override void OnLostFocus(FocusChangedEventArgs e)
+    {
+        base.OnLostFocus(e);
+        if (_clearedZero && string.IsNullOrEmpty(Text))
+            SetCurrentValue(TextProperty, "0");
+
+        _clearedZero = false;
+    }
+
+    private void ClearZeroForEditing()
+    {
+        if (!IsReadOnly && Text == "0")
+        {
+            _clearedZero = true;
+            SetCurrentValue(TextProperty, string.Empty);
+        }
+    }
 
     private static void RejectNonDigitTextInput(object? sender, TextInputEventArgs e)
     {

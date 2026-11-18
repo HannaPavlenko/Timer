@@ -63,8 +63,9 @@ if (verifyInput)
     bool success = inputs.Length == 2;
     foreach (DigitsOnlyTextBox input in inputs)
     {
-        input.Text = "";
+        input.SetCurrentValue(TextBox.TextProperty, "0");
         input.Focus();
+        success &= input.Text == "";
         inputWindow.KeyTextInput("а");
         inputWindow.KeyTextInput("a");
         Dispatcher.UIThread.RunJobs();
