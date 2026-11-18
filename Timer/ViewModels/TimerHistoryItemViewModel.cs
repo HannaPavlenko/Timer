@@ -43,7 +43,7 @@ public sealed class TimerHistoryItemViewModel : ObservableObject
         SettingsLabel = entry.Mode switch
         {
             TimerMode.Intervals => $"Prepare {FormatTime(entry.Preparation)} · Work {FormatTime(entry.Work)} · "
-                                   + $"Rest {FormatTime(entry.Rest)} · {entry.Rounds}\u00A0"
+                                   + $"Rest {FormatTime(entry.Rest)}\n{entry.Rounds}\u00A0"
                                    + (entry.Rounds == 1 ? "round" : "rounds"),
             _ => string.Empty
         };
