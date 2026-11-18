@@ -86,7 +86,8 @@
     </Style>
   </UserControl.Styles>
 
-  <ScrollViewer Background="#F3EFE8"
+  <ScrollViewer x:Name="FormScroll" Background="#F3EFE8"
+                BringIntoViewOnFocusChange="True"
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
     <Grid MaxWidth="640" HorizontalAlignment="Stretch" Margin="22,24,22,32">
