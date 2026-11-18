@@ -92,6 +92,11 @@
                 VerticalScrollBarVisibility="Auto">
     <Grid MaxWidth="640" HorizontalAlignment="Stretch" Margin="22,24,22,32">
       <StackPanel Spacing="18">
+        <Border IsVisible="{Binding HasStorageError}" Background="#F4E6DC"
+                CornerRadius="14" Padding="14">
+          <TextBlock Text="{Binding StorageErrorMessage}" Foreground="#292D28"
+                     FontSize="13" TextWrapping="Wrap" />
+        </Border>
         <Border Background="#FFFCF7" BorderBrush="#E7DFD4" BorderThickness="1"
                 CornerRadius="16" Padding="6">
           <TabStrip SelectedIndex="{Binding SelectedModeIndex, Mode=TwoWay}"

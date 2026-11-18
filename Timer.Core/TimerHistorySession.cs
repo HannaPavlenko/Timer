@@ -66,13 +66,14 @@ public sealed class TimerHistorySession
         if (status == _current.Status)
             return;
 
-        _current = _current with
+        TimerHistoryEntry updated = _current with
         {
             Status = status,
             Elapsed = snapshot.TotalElapsed,
             EndedAtUtc = status == TimerHistoryStatus.Completed ? DateTimeOffset.UtcNow : null
         };
-        _store.Upsert(_current);
+        _store.Upsert(updated);
+        _current = updated;
         if (status is TimerHistoryStatus.Completed or TimerHistoryStatus.Stopped)
             _current = null;
     }
@@ -85,13 +86,13 @@ public sealed class TimerHistorySession
         TimerHistoryStatus status = snapshot.Status == TimerStatus.Completed
             ? TimerHistoryStatus.Completed
             : TimerHistoryStatus.Stopped;
-        _current = _current with
+        TimerHistoryEntry stopped = _current with
         {
             Status = status,
             Elapsed = snapshot.TotalElapsed,
             EndedAtUtc = DateTimeOffset.UtcNow
         };
-        _store.Upsert(_current);
+        _store.Upsert(stopped);
         _current = null;
     }
 
@@ -114,9 +115,10 @@ public sealed class TimerHistorySession
     public bool Delete(Guid id)
     {
         bool wasCurrent = _current?.Id == id;
+        bool deleted = _store.Delete(id);
         if (wasCurrent)
             _current = null;
-        bool deleted = _store.Delete(id);
+
         return deleted || wasCurrent;
     }
 }

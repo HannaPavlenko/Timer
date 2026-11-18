@@ -14,7 +14,8 @@ bool verifyInput = args.Length == 1 && args[0] == "verify-input";
 int width = 0;
 if (!verifyInput && (args.Length != 3 || !int.TryParse(args[1], out width) || width < 320))
 {
-    Console.Error.WriteLine("Usage: Timer.Preview <stopwatch|countdown|intervals|history> <width> <output.png> | verify-input");
+    Console.Error.WriteLine(
+        "Usage: Timer.Preview <stopwatch|countdown|intervals|history|storage-error> <width> <output.png> | verify-input");
     return 1;
 }
 
@@ -23,7 +24,10 @@ AppBuilder.Configure<Timer.App>()
     .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
     .SetupWithoutStarting();
 
-PreviewHistoryStore previewStore = new PreviewHistoryStore();
+PreviewHistoryStore previewStore = new PreviewHistoryStore
+{
+    SimulateStorageFailure = !verifyInput && args[0].Equals("storage-error", StringComparison.OrdinalIgnoreCase)
+};
 if (!verifyInput && args[0].Equals("history", StringComparison.OrdinalIgnoreCase))
 {
     previewStore.Upsert(new TimerHistoryEntry(
@@ -96,6 +100,7 @@ switch (args[0].ToLowerInvariant())
         viewModel.SelectIntervalsCommand.Execute(null);
         break;
     case "history":
+    case "storage-error":
         break;
     default:
         Console.Error.WriteLine("Unknown mode.");
@@ -127,7 +132,15 @@ sealed class PreviewHistoryStore : ITimerHistoryStore
 {
     private readonly List<TimerHistoryEntry> _entries = [];
 
-    public IReadOnlyList<TimerHistoryEntry> Load() => _entries.ToArray();
+    public bool SimulateStorageFailure { get; init; }
+
+    public IReadOnlyList<TimerHistoryEntry> Load()
+    {
+        if (SimulateStorageFailure)
+            throw new IOException("Simulated history read failure for preview.");
+
+        return _entries.ToArray();
+    }
 
     public void Upsert(TimerHistoryEntry entry)
     {

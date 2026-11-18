@@ -63,8 +63,21 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
 
         try
         {
-            return JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(_filePath))
+            List<TimerHistoryEntry> entries = JsonSerializer.Deserialize<List<TimerHistoryEntry>>(
+                File.ReadAllText(_filePath))
                 ?? throw new InvalidDataException("Timer history cannot be empty JSON.");
+            HashSet<Guid> ids = [];
+            foreach (TimerHistoryEntry entry in entries)
+            {
+                if (entry is null || entry.Id == Guid.Empty || !ids.Add(entry.Id) ||
+                    !Enum.IsDefined(entry.Mode) || !Enum.IsDefined(entry.Status) ||
+                    entry.Elapsed < TimeSpan.Zero || entry.Preparation < TimeSpan.Zero ||
+                    entry.Work < TimeSpan.Zero || entry.Rest < TimeSpan.Zero ||
+                    entry.Target < TimeSpan.Zero || entry.Rounds < 0)
+                    throw new InvalidDataException("Timer history contains invalid or duplicate entries.");
+            }
+
+            return entries;
         }
         catch (JsonException exception)
         {

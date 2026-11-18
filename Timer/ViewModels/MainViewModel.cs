@@ -6,6 +6,7 @@ using System.Linq;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using Timer.Core;
+using Timer.Storage;
 
 namespace Timer.ViewModels;
 
@@ -15,6 +16,8 @@ public partial class MainViewModel : ViewModelBase
     private readonly ISoundSettingsStore? _soundSettingsStore;
     private TimerSnapshot? _soundSnapshot;
     private bool _isSoundEnabled;
+    private bool _historyStorageUnavailable;
+    private bool _soundStorageUnavailable;
     private readonly ITimerHistoryStore _historyStore;
     private readonly TimerHistorySession _history;
     private readonly DispatcherTimer _refreshTimer;
@@ -33,10 +36,12 @@ public partial class MainViewModel : ViewModelBase
         TimeProvider? timeProvider = null)
     {
         _engine = new TimerEngine(timeProvider);
-        _soundSettingsStore = soundSettingsStore;
-        _isSoundEnabled = soundSettingsStore?.Load() ?? false;
-        _historyStore = historyStore;
-        _history = new TimerHistorySession(historyStore);
+        _soundSettingsStore = soundSettingsStore is null
+            ? null
+            : new SessionSoundSettingsStore(soundSettingsStore, () => ReportStorageFailure(history: false));
+        _isSoundEnabled = _soundSettingsStore?.Load() ?? false;
+        _historyStore = new SessionHistoryStore(historyStore, () => ReportStorageFailure(history: true));
+        _history = new TimerHistorySession(_historyStore);
         _countUpDuration = (DurationMinutes, DurationSeconds);
         _countdownDuration = (DurationMinutes, DurationSeconds);
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -46,6 +51,26 @@ public partial class MainViewModel : ViewModelBase
 
     /// <summary>Requests a phase cue or completion sound at an observed timer boundary.</summary>
     public event EventHandler<TimerSoundEventArgs>? SoundRequested;
+
+    /// <summary>Whether history or sound changes can no longer be saved to disk in this app session.</summary>
+    public bool HasStorageError => _historyStorageUnavailable || _soundStorageUnavailable;
+
+    /// <summary>Explains which changes will be lost when the app closes and how to restore storage.</summary>
+    public string StorageErrorMessage
+    {
+        get
+        {
+            string affected = _historyStorageUnavailable && _soundStorageUnavailable
+                ? "History and sound settings"
+                : _historyStorageUnavailable ? "History" : "Sound settings";
+            string files = _historyStorageUnavailable && _soundStorageUnavailable
+                ? "history.json and sound.json"
+                : _historyStorageUnavailable ? "history.json" : "sound.json";
+            return $"{affected} could not be loaded or saved. Changes are kept only until the app closes. " +
+                   $"Back up and repair {files} in the Stilltime app data folder, then reopen the app. " +
+                   "See README for recovery steps.";
+        }
+    }
 
     /// <summary>Whether countdown boundaries request a sound; shared across all modes.</summary>
     public bool IsSoundEnabled
@@ -723,6 +748,17 @@ public partial class MainViewModel : ViewModelBase
 
         duration = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
         return true;
+    }
+
+    private void ReportStorageFailure(bool history)
+    {
+        if (history)
+            _historyStorageUnavailable = true;
+        else
+            _soundStorageUnavailable = true;
+
+        OnPropertyChanged(nameof(HasStorageError));
+        OnPropertyChanged(nameof(StorageErrorMessage));
     }
 
     private static string FormatTime(TimeSpan time, bool roundUp = false)

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Timer.Core;
 using System.Text.Json;
 
@@ -116,6 +116,57 @@ public sealed class TimerHistoryStoreTests
             IReadOnlyList<TimerHistoryEntry> loaded = new TimerHistoryStore(path).Load();
             CollectionAssert.AreEqual(entries.Skip(10).ToArray(), loaded.ToArray());
             Assert.AreEqual(10, JsonSerializer.Deserialize<List<TimerHistoryEntry>>(File.ReadAllText(path))!.Count);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    [DataRow(3)]
+    [DataRow(4)]
+    [DataRow(5)]
+    [DataRow(6)]
+    [DataRow(7)]
+    [DataRow(8)]
+    [DataRow(9)]
+    [DataRow(10)]
+    public void InvalidEntriesAreRejectedBeforeTrimmingOrWriting(int invalidKind)
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "StilltimeTests", Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(directory, "history.json");
+        TimerHistoryEntry[] entries = Enumerable.Range(0, 11).Select(_ => NewEntry(TimerMode.Stopwatch)).ToArray();
+        entries[0] = invalidKind switch
+        {
+            0 => null!,
+            1 => entries[0] with {Id = Guid.Empty},
+            2 => entries[0] with {Id = entries[1].Id},
+            3 => entries[0] with {Mode = (TimerMode)999},
+            4 => entries[0] with {Status = (TimerHistoryStatus)999},
+            5 => entries[0] with {Elapsed = TimeSpan.FromSeconds(-1)},
+            6 => entries[0] with {Preparation = TimeSpan.FromSeconds(-1)},
+            7 => entries[0] with {Work = TimeSpan.FromSeconds(-1)},
+            8 => entries[0] with {Rest = TimeSpan.FromSeconds(-1)},
+            9 => entries[0] with {Target = TimeSpan.FromSeconds(-1)},
+            _ => entries[0] with {Rounds = -1}
+        };
+        string json = JsonSerializer.Serialize(entries);
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(path, json);
+            TimerHistoryStore store = new TimerHistoryStore(path);
+
+            Assert.ThrowsExactly<InvalidDataException>(() => store.Load());
+            Assert.ThrowsExactly<InvalidDataException>(() => store.Upsert(NewEntry(TimerMode.Stopwatch)));
+            Assert.ThrowsExactly<InvalidDataException>(() => store.Delete(entries[1].Id));
+            Assert.AreEqual(json, File.ReadAllText(path));
         }
         finally
         {

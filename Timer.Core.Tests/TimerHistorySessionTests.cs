@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Timer.Core;
 
 namespace Timer.Core.Tests;
@@ -102,6 +102,67 @@ public sealed class TimerHistorySessionTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
     }
 
+    [TestMethod]
+    public void FailedDeleteKeepsCurrentEntryAttached()
+    {
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry entry = NewEntry();
+        history.StartNew(entry);
+        store.FailDelete = true;
+
+        Assert.ThrowsExactly<IOException>(() => history.Delete(entry.Id));
+        Assert.AreEqual(entry.Id, history.CurrentEntryId);
+
+        history.Stop(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(2)));
+
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+        Assert.AreEqual(TimeSpan.FromSeconds(2), store.Load()[0].Elapsed);
+    }
+
+    [TestMethod]
+    [DataRow(TimerStatus.Paused)]
+    [DataRow(TimerStatus.Completed)]
+    public void FailedUpdateCanBeRetriedWithoutLosingTransition(TimerStatus status)
+    {
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry entry = NewEntry();
+        history.StartNew(entry);
+        store.FailWrites = true;
+        TimerSnapshot snapshot = Snapshot(status, TimeSpan.FromSeconds(6));
+
+        Assert.ThrowsExactly<IOException>(() => history.Update(snapshot));
+        Assert.AreEqual(entry.Id, history.CurrentEntryId);
+        Assert.AreEqual(TimerHistoryStatus.Running, store.Load()[0].Status);
+        store.FailWrites = false;
+        history.Update(snapshot);
+
+        Assert.AreEqual(status == TimerStatus.Completed ? TimerHistoryStatus.Completed : TimerHistoryStatus.Paused,
+            store.Load()[0].Status);
+        Assert.AreEqual(TimeSpan.FromSeconds(6), store.Load()[0].Elapsed);
+        Assert.AreEqual(status == TimerStatus.Completed ? (Guid?)null : entry.Id, history.CurrentEntryId);
+    }
+
+    [TestMethod]
+    public void FailedStopCanBeRetried()
+    {
+        MemoryStore store = new MemoryStore();
+        TimerHistorySession history = new TimerHistorySession(store);
+        TimerHistoryEntry entry = NewEntry();
+        history.StartNew(entry);
+        store.FailWrites = true;
+
+        Assert.ThrowsExactly<IOException>(() => history.Stop(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(2))));
+        Assert.AreEqual(entry.Id, history.CurrentEntryId);
+        store.FailWrites = false;
+        history.Stop(Snapshot(TimerStatus.Running, TimeSpan.FromSeconds(3)));
+
+        Assert.IsNull(history.CurrentEntryId);
+        Assert.AreEqual(TimeSpan.FromSeconds(3), store.Load()[0].Elapsed);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, store.Load()[0].Status);
+    }
+
     private static TimerHistoryEntry NewEntry() => new(
         Guid.NewGuid(), TimerMode.CountUp, DateTimeOffset.UtcNow,
         TimerHistoryStatus.Running, TimeSpan.Zero, TimeSpan.FromSeconds(6));
@@ -116,11 +177,16 @@ public sealed class TimerHistorySessionTests
         private readonly List<TimerHistoryEntry> _entries = [];
 
         public int WriteCount { get; private set; }
+        public bool FailWrites { get; set; }
+        public bool FailDelete { get; set; }
 
         public IReadOnlyList<TimerHistoryEntry> Load() => _entries.ToArray();
 
         public void Upsert(TimerHistoryEntry entry)
         {
+            if (FailWrites)
+                throw new IOException("Simulated write failure.");
+
             int index = _entries.FindIndex(existing => existing.Id == entry.Id);
             if (index < 0)
                 _entries.Add(entry);
@@ -129,6 +195,12 @@ public sealed class TimerHistorySessionTests
             WriteCount++;
         }
 
-        public bool Delete(Guid id) => _entries.RemoveAll(entry => entry.Id == id) > 0;
+        public bool Delete(Guid id)
+        {
+            if (FailDelete)
+                throw new IOException("Simulated delete failure.");
+
+            return _entries.RemoveAll(entry => entry.Id == id) > 0;
+        }
     }
 }
