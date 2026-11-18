@@ -123,8 +123,13 @@
                     Margin="-16,0" Padding="4,0,4,8">
               <Grid RowDefinitions="*,Auto">
                 <Viewbox Grid.Row="0" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                  <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold" FontFeatures="tnum"
-                             Foreground="#292D28" />
+                  <LayoutTransformControl>
+                    <LayoutTransformControl.LayoutTransform>
+                      <ScaleTransform ScaleY="2" />
+                    </LayoutTransformControl.LayoutTransform>
+                    <TextBlock Text="{Binding DisplayTime}" FontSize="70" FontWeight="SemiBold" FontFeatures="tnum"
+                               Foreground="#292D28" />
+                  </LayoutTransformControl>
                 </Viewbox>
                 <Grid Grid.Row="1" MinHeight="18">
                   <TextBlock Classes="muted" IsVisible="{Binding HasDetailLabel}" Text="{Binding DetailLabel}"
