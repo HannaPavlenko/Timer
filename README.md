@@ -31,19 +31,21 @@ Edit the name at the top of any history card to name a timer (up to 80 character
 
 History stores up to 10 entries across all modes. Adding a new entry removes the earliest inserted entry when the limit is reached (FIFO). Restarting an existing entry keeps its place in the queue.
 
-Completed Count up entries also offer Restart: the same row starts from zero and shows Stop while running.
+Completed Count up, Countdown, and Intervals entries can also be restarted.
 
 ## Build and run
 
-Install the .NET 10 SDK. Building for Android also requires the .NET Android workload and Android SDK. The Android target supports Android 6.0 (API 23) or later.
+### Windows
+
+Install the .NET 10 SDK and run the desktop app from the repository root.
 
 ```powershell
-dotnet restore Timer.sln
-dotnet build Timer.sln -c Debug
 dotnet run --project Timer.Desktop
 ```
 
-To run on Android, select `Timer.Android` and a connected device or emulator in an IDE with Android tooling. The Android project builds from the command line with:
+### Android
+
+Install the .NET 10 SDK, the Android workload and the Android SDK. To run the app, select `Timer.Android` and a connected device or emulator in an IDE with Android tooling. The minimum supported version is Android 6.0 (API 23). To build from the command line:
 
 ```powershell
 dotnet build Timer.Android/Timer.Android.csproj -c Debug
