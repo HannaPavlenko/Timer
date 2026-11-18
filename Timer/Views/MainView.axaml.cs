@@ -15,8 +15,7 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
 
-        SizeChanged += (_, args) => TimeDisplayPanel.Height =
-            Math.Min(args.NewSize.Height * 2 / 3, Math.Min(args.NewSize.Width, 640));
+        SizeChanged += (_, args) => TimeDisplayPanel.Height = args.NewSize.Height / 3;
         AttachedToVisualTree += (_, _) => (DataContext as MainViewModel)?.ResumeUpdates();
         DetachedFromVisualTree += (_, _) => (DataContext as MainViewModel)?.SuspendUpdates();
 
