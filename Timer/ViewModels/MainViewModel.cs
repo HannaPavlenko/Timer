@@ -325,6 +325,9 @@ public partial class MainViewModel : ViewModelBase
 
     public void ResumeUpdates()
     {
+        if (_status != TimerStatus.Running)
+            return;
+
         Refresh();
         if (_status == TimerStatus.Running)
             _refreshTimer.Start();
@@ -335,6 +338,7 @@ public partial class MainViewModel : ViewModelBase
         _soundSnapshot = null;
         _refreshTimer.Stop();
         _history.Stop(_engine.Update());
+        _engine.Reset();
         if (_selectedMode == TimerMode.CountUp)
             _countUpDuration = (DurationMinutes, DurationSeconds);
         else if (_selectedMode == TimerMode.Countdown)
@@ -489,7 +493,7 @@ public partial class MainViewModel : ViewModelBase
             TimerMode.CountUp => $"Goal  {FormatTime(snapshot.Target!.Value)}",
             TimerMode.Countdown => $"From  {FormatTime(snapshot.Target!.Value)}",
             TimerMode.Intervals => snapshot.Phase == IntervalPhase.Prepare
-                ? $"Prepare for round 1 of {snapshot.Rounds}"
+                ? $"Prepare for round {snapshot.Round} of {snapshot.Rounds}"
                 : $"Round {snapshot.Round} of {snapshot.Rounds}  ·  " +
                     (snapshot.Phase == IntervalPhase.Rest ? "rest" :
                      snapshot.Phase == IntervalPhase.Complete ? "complete" : "work"),

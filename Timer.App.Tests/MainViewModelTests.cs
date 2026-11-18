@@ -573,6 +573,21 @@ public sealed class MainViewModelTests
 
     private static MainViewModel CreateViewModel() => new(new MemoryHistoryStore());
 
+    /// <summary>A reattached countdown with no target stays ready after leaving a running stopwatch.</summary>
+    [TestMethod]
+    public void ReattachingEmptyCountdownKeepsSettingsEditable()
+    {
+        MainViewModel viewModel = CreateViewModel();
+        viewModel.StartOrPauseCommand.Execute(null);
+        viewModel.SelectCountdownCommand.Execute(null);
+        viewModel.SuspendUpdates();
+        viewModel.ResumeUpdates();
+
+        Assert.AreEqual("READY", viewModel.StatusLabel);
+        Assert.AreEqual("00:00", viewModel.DisplayTime);
+        Assert.IsTrue(viewModel.CanEditSettings);
+    }
+
     private sealed class MemoryHistoryStore : ITimerHistoryStore
     {
         private readonly List<TimerHistoryEntry> _entries = [];

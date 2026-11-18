@@ -109,6 +109,8 @@ public sealed class SoundTests
             Assert.AreEqual(++expected, signals);
             viewModel.ResumeUpdates();
             Assert.AreEqual(expected, signals);
+            if (cues[^1] == TimerSound.Prepare)
+                Assert.AreEqual("Prepare for round 2 of 2", viewModel.DetailLabel);
         }
 
         Assert.AreEqual("FINISHED", viewModel.StatusLabel);
