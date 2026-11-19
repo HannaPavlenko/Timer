@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Text;
+using System.Text.Json.Nodes;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Timer.Core;
 using Timer.ViewModels;
 
@@ -7,6 +9,55 @@ namespace Timer.App.Tests;
 [TestClass]
 public sealed class StorageRecoveryTests
 {
+    private const string LegacyHistory = """
+        [{
+          "Id": "11223344-5566-7788-99aa-bbccddeeff00",
+          "Mode": 0,
+          "StartedAtUtc": "2026-06-10T10:00:00Z",
+          "Status": 3,
+          "Elapsed": "00:00:37"
+        }]
+        """;
+
+    [TestMethod]
+    [DataRow("Id")]
+    [DataRow("Mode")]
+    [DataRow("StartedAtUtc")]
+    [DataRow("Status")]
+    [DataRow("Elapsed")]
+    public void MissingRequiredFieldShowsWarningAndPreservesOriginalBytes(string missingField)
+    {
+        using StorageDirectory directory = new();
+        string path = directory.FilePath("history.json");
+        JsonArray history = JsonNode.Parse(LegacyHistory)!.AsArray();
+        Assert.IsTrue(history[0]!.AsObject().Remove(missingField));
+        File.WriteAllText(path, history.ToJsonString(), Encoding.UTF8);
+        byte[] original = File.ReadAllBytes(path);
+
+        MainViewModel viewModel = new(new TimerHistoryStore(path));
+        Assert.IsTrue(viewModel.HasStorageError);
+        StringAssert.Contains(viewModel.StorageErrorMessage, "history.json");
+        Assert.IsTrue(viewModel.HasNoHistory);
+        viewModel.StartOrPauseCommand.Execute(null);
+        viewModel.ResetCommand.Execute(null);
+        CollectionAssert.AreEqual(original, File.ReadAllBytes(path));
+    }
+
+    [TestMethod]
+    public void LegacyHistoryWithoutNameOrSettingsOpensWithoutWarning()
+    {
+        using StorageDirectory directory = new();
+        string path = directory.FilePath("history.json");
+        File.WriteAllText(path, LegacyHistory);
+
+        MainViewModel viewModel = new(new TimerHistoryStore(path));
+        Assert.IsFalse(viewModel.HasStorageError);
+        TimerHistoryItemViewModel item = viewModel.HistoryItems.Single();
+        Assert.AreEqual(Guid.Parse("11223344-5566-7788-99aa-bbccddeeff00"), item.Id);
+        Assert.AreEqual("00:37", item.DurationLabel);
+        Assert.AreEqual(string.Empty, item.Name);
+    }
+
     [TestMethod]
     [DataRow("{invalid json")]
     [DataRow("null")]

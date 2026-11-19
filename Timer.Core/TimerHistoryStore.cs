@@ -5,6 +5,7 @@ namespace Timer.Core;
 public sealed class TimerHistoryStore : ITimerHistoryStore
 {
     private const int MaximumEntries = 10;
+    private static readonly JsonSerializerOptions ReadOptions = new() {RespectRequiredConstructorParameters = true};
     private readonly string _filePath;
     private readonly object _sync = new();
 
@@ -64,7 +65,7 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
         try
         {
             List<TimerHistoryEntry> entries = JsonSerializer.Deserialize<List<TimerHistoryEntry>>(
-                File.ReadAllText(_filePath))
+                File.ReadAllText(_filePath), ReadOptions)
                 ?? throw new InvalidDataException("Timer history cannot be empty JSON.");
             HashSet<Guid> ids = [];
             foreach (TimerHistoryEntry entry in entries)
