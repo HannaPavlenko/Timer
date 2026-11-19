@@ -1,4 +1,4 @@
-﻿# Stilltime
+# Stilltime
 
 <img src="Timer.Android/Icon.png" width="88" alt="Stilltime clock icon">
 
@@ -12,6 +12,20 @@ These images were rendered from the real Avalonia view with the headless Skia re
 | --- | --- |
 | <img src="docs/screenshots/desktop.png" width="360" alt="Stopwatch screen"> | <img src="docs/screenshots/mobile.png" width="250" alt="Interval timer screen"> |
 
+## Run on Windows
+
+Install the .NET 10 SDK and run this command from the repository root.
+
+```powershell
+dotnet run --project Timer.Desktop
+```
+
+## Engineering examples
+
+- **Timing across skipped refreshes.** The engine uses monotonic timestamps from `TimeProvider` to find the current interval phase, even when the UI misses a phase transition. [Timer engine](Timer.Core/TimerEngine.cs) · [Skipped-refresh test](Timer.Core.Tests/TimerEngineTests.cs#L66)
+- **Recovery from corrupt history.** If the history file is damaged, Stilltime keeps new entries in memory and preserves the original file for recovery. [Session history store](Timer/Storage/SessionHistoryStore.cs) · [Corrupt-history test](Timer.App.Tests/StorageRecoveryTests.cs#L103)
+- **One Windows instance per account.** A named mutex protects the running instance across login sessions. A second launch exits before opening history, and a new process can take over after an unexpected exit. [Startup guard](Timer.Desktop/SingleInstanceApplication.cs) · [Process tests](Timer.App.Tests/SingleInstanceTests.cs)
+
 ## Modes
 
 | Mode | Behavior |
@@ -21,47 +35,11 @@ These images were rendered from the real Avalonia view with the headless Skia re
 | Countdown | Counts down from a chosen duration to zero. |
 | Intervals | Repeats preparation, work, and rest for a chosen number of rounds, including rest in the final round. |
 
-All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. Preparation runs before work in every round; set it to 0:00 to skip it. The engine uses monotonic timestamps, so a delayed screen refresh does not change the measured time.
+All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. Preparation runs before work in every round; set it to 0:00 to skip it.
 
 The Sound checkbox enables a short beep when Count up or Countdown finishes. In Intervals, Prepare starts with one beep, Work with two, Rest with three, and the session ends with a gong. It is off by default and saved across app restarts. Playback is supported on Windows and Android and uses the device volume. Starting or restarting Intervals plays the first phase cue; Pause, Resume, Reset, and Stop do not repeat it.
 
-Each new timer started from the main controls is saved to local history, including its mode, settings, elapsed time, and final state. Each mode tab shows only its own history sorted by launch date and time, newest first. Restart updates the launch time and moves the same entry to its new chronological position; FIFO storage order stays unchanged. History remains after restarting the app, and each entry can be deleted. Running entries have a Stop button that ends the current session; paused and stopped entries have a Restart button that restarts the same entry from zero with its saved settings. A timer that was running when the app closed appears as stopped on the next launch. The active timer itself is not resumed after a restart.
-
-Edit the name at the top of any history card to name a timer (up to 80 characters). Names are saved automatically and kept when restarting a timer or reopening the app. An empty name shows the timer mode.
-
-History stores up to 10 entries across all modes. Adding a new entry removes the earliest inserted entry when the limit is reached (FIFO). Restarting an existing entry keeps its place in the queue.
-
-Completed Count up, Countdown, and Intervals entries can also be restarted.
-
-## Storage recovery
-
-If history or sound settings cannot be read or saved, the app shows a storage warning and continues
-with those changes kept in memory until the app closes. The affected file is not retried during that
-session, so a damaged file is not replaced by the temporary history. The other store keeps working.
-
-On Windows, the files are `%LOCALAPPDATA%\Stilltime\history.json` and
-`%LOCALAPPDATA%\Stilltime\sound.json`. To recover, close Stilltime, make a backup of the affected
-file, then repair it or move it out of that folder. Reopen the app to load the repaired file or start
-with an empty history / sound disabled. Moving the file starts fresh; it does not recover its entries.
-If access was denied or the disk was full, restore access or free space before reopening.
-On Android these files are in private app storage; back up app data before using Android's
-Clear storage action, which resets both history and sound settings.
-
-## Build and run
-
-### Windows
-
-Install the .NET 10 SDK and run the desktop app from the repository root.
-
-Windows allows one Stilltime instance per Windows account, including across login sessions.
-Launching it again exits without opening a second window or reading history. After the first
-process closes or terminates unexpectedly, Stilltime can be launched again.
-
-```powershell
-dotnet run --project Timer.Desktop
-```
-
-### Android
+## Run on Android
 
 Install the .NET 10 SDK, the Android workload and the Android SDK. To run the app, select `Timer.Android` and a connected device or emulator in an IDE with Android tooling. The minimum supported version is Android 6.0 (API 23). To build from the command line:
 
@@ -104,3 +82,27 @@ dotnet run --project tools/Timer.Preview -- verify-input
 | `Timer.Core.Tests/` | Engine tests |
 | `Timer.App.Tests/` | View model tests |
 | `tools/` | Icon and screenshot generation |
+
+## History
+
+Each new timer started from the main controls is saved to local history, including its mode, settings, elapsed time, and final state. Each mode tab shows only its own history sorted by launch date and time, newest first. Restart updates the launch time and moves the same entry to its new chronological position; FIFO storage order stays unchanged. History remains after restarting the app, and each entry can be deleted. Running entries have a Stop button that ends the current session; paused and stopped entries have a Restart button that restarts the same entry from zero with its saved settings. A timer that was running when the app closed appears as stopped on the next launch. The active timer itself is not resumed after a restart.
+
+Edit the name at the top of any history card to name a timer (up to 80 characters). Names are saved automatically and kept when restarting a timer or reopening the app. An empty name shows the timer mode.
+
+History stores up to 10 entries across all modes. Adding a new entry removes the earliest inserted entry when the limit is reached (FIFO). Restarting an existing entry keeps its place in the queue.
+
+Completed Count up, Countdown, and Intervals entries can also be restarted.
+
+## Storage recovery
+
+If history or sound settings cannot be read or saved, the app shows a storage warning and continues
+with those changes kept in memory until the app closes. The affected file is not retried during that
+session, so a damaged file is not replaced by the temporary history. The other store keeps working.
+
+On Windows, the files are `%LOCALAPPDATA%\Stilltime\history.json` and
+`%LOCALAPPDATA%\Stilltime\sound.json`. To recover, close Stilltime, make a backup of the affected
+file, then repair it or move it out of that folder. Reopen the app to load the repaired file or start
+with an empty history / sound disabled. Moving the file starts fresh; it does not recover its entries.
+If access was denied or the disk was full, restore access or free space before reopening.
+On Android these files are in private app storage; back up app data before using Android's
+Clear storage action, which resets both history and sound settings.
