@@ -121,6 +121,8 @@
 
 ## Проверки и инструменты
 
+- При push и pull request GitHub Actions запускает две задачи на отдельных машинах: `windows` собирает desktop и запускает оба тестовых проекта в Release, `android` восстанавливает workload и собирает Android-проект в Debug.
+
 ```powershell
 dotnet restore Timer.sln
 dotnet test Timer.Core.Tests/Timer.Core.Tests.csproj --no-restore
