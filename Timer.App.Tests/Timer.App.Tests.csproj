@@ -13,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Timer\Timer.csproj" />
+    <ProjectReference Include="..\tools\Timer.Desktop.TestHost\Timer.Desktop.TestHost.csproj" />
   </ItemGroup>
 </Project>

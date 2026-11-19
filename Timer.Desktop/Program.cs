@@ -12,8 +12,13 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        App.SoundPlayback = new SoundPlayback(WindowsSound.PlayAsync);
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        if (OperatingSystem.IsWindows())
+        {
+            SingleInstanceApplication.TryRun(() => RunApplication(args));
+            return;
+        }
+
+        RunApplication(args);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -22,4 +27,10 @@ sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+    private static void RunApplication(string[] args)
+    {
+        App.SoundPlayback = new SoundPlayback(WindowsSound.PlayAsync);
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
 }

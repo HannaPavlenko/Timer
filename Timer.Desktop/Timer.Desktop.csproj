@@ -16,5 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Timer\Timer.csproj" />
+    <InternalsVisibleTo Include="Timer.Desktop.TestHost" />
   </ItemGroup>
 </Project>
