@@ -12,11 +12,14 @@ These images were rendered from the real Avalonia view with the headless Skia re
 | --- | --- |
 | <img src="docs/screenshots/desktop.png" width="360" alt="Stopwatch screen"> | <img src="docs/screenshots/mobile.png" width="250" alt="Interval timer screen"> |
 
+## Downloads
+
+| Platform | Download | How to run |
+| --- | --- | --- |
+| Windows x64 | [Windows ZIP](https://github.com/HannaPavlenko/Timer/releases/download/v1.0.0/Stilltime-win-x64.zip) | Extract the entire ZIP and open `Timer.Desktop.exe`. The .NET runtime is included. |
+| Android 6.0 or later (ARM64 or x86-64) | [Android APK](https://github.com/HannaPavlenko/Timer/releases/download/v1.0.0/Stilltime-android.apk) | Open the downloaded APK and tap **Install**. If prompted, allow your browser or file manager to install this app. |
+
 ## Run on Windows
-
-[Download Stilltime for Windows x64 (ZIP)](https://github.com/HannaPavlenko/Timer/releases/download/v1.0.0/Stilltime-win-x64.zip)
-
-Extract the entire ZIP and open `Timer.Desktop.exe`. The ZIP includes the .NET runtime.
 
 To run from source, install the .NET 10 SDK and run this command from the repository root.
 
