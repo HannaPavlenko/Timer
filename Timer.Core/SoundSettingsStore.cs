@@ -17,12 +17,13 @@ public sealed class SoundSettingsStore : ISoundSettingsStore
     /// <inheritdoc />
     public bool Load()
     {
-        if (!File.Exists(_filePath))
+        string? json = StorageFile.ReadTextIfPresent(_filePath);
+        if (json is null)
             return false;
 
         try
         {
-            return JsonSerializer.Deserialize<bool>(File.ReadAllText(_filePath));
+            return JsonSerializer.Deserialize<bool>(json);
         }
         catch (JsonException exception)
         {

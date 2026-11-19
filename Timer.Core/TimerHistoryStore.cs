@@ -59,13 +59,13 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
 
     private List<TimerHistoryEntry> ReadEntries()
     {
-        if (!File.Exists(_filePath))
+        string? json = StorageFile.ReadTextIfPresent(_filePath);
+        if (json is null)
             return [];
 
         try
         {
-            List<TimerHistoryEntry> entries = JsonSerializer.Deserialize<List<TimerHistoryEntry>>(
-                File.ReadAllText(_filePath), ReadOptions)
+            List<TimerHistoryEntry> entries = JsonSerializer.Deserialize<List<TimerHistoryEntry>>(json, ReadOptions)
                 ?? throw new InvalidDataException("Timer history cannot be empty JSON.");
             HashSet<Guid> ids = [];
             foreach (TimerHistoryEntry entry in entries)

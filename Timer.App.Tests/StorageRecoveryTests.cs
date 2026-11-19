@@ -20,6 +20,43 @@ public sealed class StorageRecoveryTests
         """;
 
     [TestMethod]
+    public void FirstLaunchWithoutStorageDirectoryUsesDefaultsWithoutWarning()
+    {
+        using StorageDirectory directory = new();
+        string path = directory.FilePath("Stilltime");
+        TimerHistoryStore history = new(Path.Combine(path, "history.json"));
+        SoundSettingsStore sound = new(Path.Combine(path, "sound.json"));
+        MainViewModel viewModel = new(history, sound);
+
+        Assert.IsFalse(viewModel.HasStorageError);
+        Assert.IsTrue(viewModel.HasNoHistory);
+        Assert.IsFalse(viewModel.IsSoundEnabled);
+
+        viewModel.IsSoundEnabled = true;
+        viewModel.StartOrPauseCommand.Execute(null);
+        viewModel.ResetCommand.Execute(null);
+
+        Assert.IsTrue(sound.Load());
+        Assert.AreEqual(1, history.Load().Count);
+    }
+
+    [TestMethod]
+    public void FileInPlaceOfStorageDirectoryShowsBothWarningsAtStartup()
+    {
+        using StorageDirectory directory = new();
+        string path = directory.FilePath("Stilltime");
+        File.WriteAllText(path, "existing file");
+
+        MainViewModel viewModel = new(new TimerHistoryStore(Path.Combine(path, "history.json")),
+            new SoundSettingsStore(Path.Combine(path, "sound.json")));
+
+        Assert.IsTrue(viewModel.HasStorageError);
+        StringAssert.Contains(viewModel.StorageErrorMessage, "history.json");
+        StringAssert.Contains(viewModel.StorageErrorMessage, "sound.json");
+        Assert.AreEqual("existing file", File.ReadAllText(path));
+    }
+
+    [TestMethod]
     [DataRow("Id")]
     [DataRow("Mode")]
     [DataRow("StartedAtUtc")]
