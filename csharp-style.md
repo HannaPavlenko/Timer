@@ -1,12 +1,11 @@
-﻿# C# style and cleanup
+﻿# Stilltime C# style and cleanup
 
 Read when writing, editing or reviewing C# code, including tests. These are required rules for touched code,
 not permission for unrelated cleanup. Read only the affected code before deciding its grouping.
 
 Namespaces must match file locations and project root namespaces. Document public APIs with XML comments.
 Use precise variable names that distinguish IDs, entities, names and serialized values.
-EditorConfig overrides overlapping solution settings; the grouping priorities below take precedence
-where formatter settings cannot express them.
+Apply the grouping priorities below when reviewing formatter output.
 
 ### C# readability and cleanup
 
@@ -57,7 +56,7 @@ listed together. Resolve symbols when needed; qualification alone does not prove
 | Instance event unsubscription                     | `MyObject.MyEvent -= Handler;`                                                                                                                                                    |
 | Event unsubscription                              | `MyEvent -= Handler;`, static event unsubscriptions                                                                                                                               |
 | Assignment                                        | `service = value;`, `SaveCommand = CreateAsyncRelayCommand(SaveAsync);`, `Name = value;`, `_ = SaveAsync();`, delegate assignment such as `handler = Handle;`                     |
-| Instance creation and assignment                  | `service = new Service();`, `service = new();`, `AddIngredientCommand = new RelayCommand(AddIngredient);`, `values = new int[3];`                                                 |
+| Instance creation and assignment                  | `service = new Service();`, `service = new();`, `StopCommand = new RelayCommand(() => stop(entry.Id));`, `values = new int[3];`                                                 |
 | Compound assignment                               | `count += amount;`, `flags \|= mask;` (exclude event/delegate subscriptions)                                                                                                      |
 | Null-coalescing assignment                        | `service ??= CreateService();`                                                                                                                                                    |
 | Return                                            | `return service;`, `return;`, `return await LoadAsync();`                                                                                                                         |
@@ -135,9 +134,9 @@ sequence for priorities 4 and 5; if a main variable is ambiguous, defer to lower
 1. Group one multiline operation with the immediately preceding single-line initialization only when
    that initialization supplies the variable threaded by the multiline operation and the pair is
    more logically cohesive than grouping the initialization with the operations above it. Compare
-   their purpose and data flow, not just a shared identifier. For example, keep related table aliases
-   or SQL parameter placeholders together when they collectively prepare the following query; do not
-   pull the last declaration away merely because that query uses it. If neither grouping is clearly
+   their purpose and data flow, not just a shared identifier. For example, when work and rest durations feed an interval
+   configuration call, keep their declarations together if they form the more cohesive group.
+   Referencing the rest duration in the call is insufficient on its own. If neither grouping is clearly
    stronger, leave the multiline operation separate and apply the lower priorities to the preceding
    single-line operations. A qualifying initialization/multiline pair is a complete group.
 2. Each remaining multiline operation is a group of its own, separated from surrounding groups.
@@ -156,114 +155,77 @@ sequence for priorities 4 and 5; if a main variable is ambiguous, defer to lower
 6. Group remaining consecutive single-line operations with pairwise-distinct types. Scan top to
    bottom and form the longest eligible group, up to three operations. Do not absorb statements
    already grouped by higher priorities. An operation with no eligible neighbor remains a singleton.
-7. Use `Recipes.sln.DotSettings` for remaining formatting details, including wrapping, indentation,
-   and brace style. These documented priorities win wherever formatter settings cannot express them.
+7. Apply the conventions below for wrapping, indentation, and braces. The grouping priorities take precedence.
 
 There is no separate blanket rule around single-line object initializers, assignments, returns,
 subscriptions, or declaration groups. Decide their spacing using the priorities above. Validate both
 missing separators and unnecessary separators; check again after wrapping changes physical line counts.
 
-#### ReSharper output conventions
+#### Formatting conventions
 
-These conventions were checked against the staged/un-staged cleanup comparison on 2026-10-11.
-Use the current `.editorconfig` and `Recipes.sln.DotSettings` as the executable configuration;
-EditorConfig overrides overlapping solution settings. Write new and touched code close to this
-output rather than relying on a later cleanup pass. The operation-grouping priorities above still
-require manual review: retained blank lines in formatter output do not establish a new grouping rule.
-
-- Use four spaces, CRLF, UTF-8 with BOM, no trailing whitespace, and a final newline as configured
-  for C# files. Keep `using` directives outside the namespace, with `System` first and the remaining
-  namespaces sorted. Import reordering is part of cleanup.
+- Use four spaces, UTF-8 with BOM, no trailing whitespace, and a final newline for C# files.
+  The existing C# convention specifies CRLF in the editor. Git normalizes tracked C# files to LF
+  on check-in and checks them out with LF under the repository’s [line-ending rules](.gitattributes).
+  Keep `using` directives outside the namespace, with `System` first and the remaining namespaces sorted.
 - For `if/else`, `for`, `foreach`, and `while`, use `required_for_multiline`: omit braces when
   the body is one physical-line statement, but add braces when that single statement wraps across
   lines, or when the body contains multiple statements. A wrapped condition alone does not require
   braces. Always put the body on the next line. Recheck braces after wrapping; preserve braces
   required by syntax, scope, or dangling-else binding.
-- Keep empty constructors compact, for example `public RecipesAlias() : this(null) { }`.
+- Keep empty constructors compact, for example `public MainViewModel() : this(new TimerHistoryStore(), new SoundSettingsStore()) { }`.
   This empty-body convention does not permit nonempty control-flow bodies on their header line.
   Expand switch cases so the label, operation, and `break` occupy separate lines.
 - Do not pad nonempty initializer or property-pattern braces:
-  `new Options {Value = value}`, `{viewerIdParameterName, viewerId}`, `new {Name = name}`,
+  `new Options {Value = value}`, `{entry.Id, entry}`, `new {Name = name}`,
   and `is {Count: > 0}`. Keep the empty capture pattern `is { } value`.
-- Use the configured 120-column C# wrapping target, not a mandatory break after every argument.
+- Use the 120-column C# wrapping target, not a mandatory break after every argument.
   Wrap long calls/signatures and ternaries at expression boundaries; put `?` and `:` on
   continuation lines for a wrapped ternary. Keep short arguments together when they fit.
-  Format generated SQL within the same 120-column target, counting the raw-string indentation.
-  Prefer a short, descriptive local such as `schemaSql` before passing a long script to a method;
-  do not force the SQL into the narrower space of an inline argument.
-  Break SQL at meaningful boundaries: clauses, complete column definitions, list items, and boolean
-  conditions. Keep a column identifier with its type, a keyword with its operand, and an operator
-  with its expression whenever they fit. For multiline `CREATE TABLE` column lists, put each complete
-  definition on its own indented line; indent nested queries and procedural blocks consistently.
-  Never use width-only word wrapping that strands `text`, `int`, `WHERE`, or `NOT VALID` on another
-  line when the complete unit fits. Preserve SQL values, column order, and behavior.
-- Declare local table aliases near the first SQL statement that needs them, in the narrowest scope
-  that covers their later uses. Do not collect all aliases at the start of a long method. An initial
-  declaration group is fine in a short method (roughly 25–30 lines) when declarations and uses can be
-  seen together. Reuse an alias for later statements in the same scope rather than duplicating it.
+  For multiline text such as a JSON test fixture, count indentation toward the target and wrap
+  at complete properties. Use a descriptive local when passing the literal inline would obscure the call.
+- Declare locals close to their first use, in the narrowest scope covering later uses. For example,
+  in audio generation keep a sample’s time inside the sample loop and reuse it for calculations
+  within that iteration. In a short method, related declarations can stay together when their uses are in view.
+- Keep `=` and a raw-string opener together when they fit. Apply the same rule to a call and its first
+  argument, a closing lambda followed by `}).ConfigureAwait(false)`, and a subsequent lambda argument.
+  Indent initializers and lambda bodies relative to the containing expression.
+- For long primary-constructor and positional-record signatures, keep the opening parenthesis with the
+  type name, put each parameter on its own line, and close the list on the last parameter’s line.
+  [TimerSnapshot](Timer.Core/TimerSnapshot.cs) illustrates this layout.
+- Align multiline raw-string contents and closing quotes with the opening quotes, after any interpolation
+  prefix. Preserve the literal’s relative indentation and runtime value. For example, a storage recovery
+  test can represent an incomplete history entry like this:
 
   ```csharp
-  RecipeImageUploadsAlias uploads = new();
-  string schemaSql = $$"""
-                       CREATE TABLE {{uploads.RecipeImageUploads}}(
-                           {{uploads.FileId}} text,
-                           {{uploads.OwnerId}} int,
-                           {{uploads.AttachedRecipeId}} int)
-                       """;
-
-  await ExecuteAsync(source, schemaSql);
+  string incompleteHistory = """
+                             [
+                               {"Status": 1}
+                             ]
+                             """;
   ```
 
-- Avoid artificial breaks between `=` and a raw-string opener or between a call and its first
-  argument when the formatter keeps them together. Keep `}).ConfigureAwait(false)` together
-  when it fits, and allow `}, async (reader, token) =>` on one line. Indent the initializer and
-  lambda body according to their containing expression, without adding an extra level just
-  because the preceding SQL literal spans many lines.
-- Long primary-constructor and positional-record parameter lists use one parameter per line:
-  opening parenthesis stays with the type name, parameters follow on new lines, and the closing
-  parenthesis stays with the last parameter. This follows EditorConfig's `chop_if_long`,
-  even where the solution settings specify a different fallback.
-- Align multiline raw-string contents and closing quotes with the opening quote delimiter
-  (`resharper_indent_raw_literal_string = align`), after any `$` prefix. Preserve relative
-  indentation within the literal and its runtime value; do not replace alignment with a fixed
-  four-space SQL indent. For example:
-
-  ```csharp
-  return $"""
-          SELECT {users.Id}
-          FROM {users.Users}
-          """;
-  ```
-
-- Follow the custom member layout in `Recipes.sln.DotSettings`: private constants, private fields,
-  protected constants/fields, public constants/fields, constructors, properties by access group,
-  methods by access group, and nested types. Sort names within the configured groups. Thus SQL
-  parameter constants and alias properties are alphabetical, and private `BuildSelect` helpers
-  follow public provider methods rather than sitting beside the fields that call them.
-  Consult the actual layout for access-group and explicit-interface details; do not invent a
-  blanket order for unmatched members.
-- Preserve initialization dependencies when arranging fields. For example, `ProfileReadProvider`
-  initializes `summary` before `details`, because `BuildDetails()` reads `summary`. Alphabetical
-  layout must not change execution order where values depend on earlier initializers. Declaration
-  sorting also does not authorize reordering constructor assignments, SQL projections, reader
-  ordinals, or executable statements.
-- Distinguish declaration spacing from executable grouping: consecutive single-line auto-properties
-  can remain adjacent, while constructors, multiline properties, and methods use the configured
-  separation. Do not copy incidental extra blank lines introduced or retained by member rearrangement.
+- Group members in this order: private constants, private fields, protected constants/fields,
+  public constants/fields, constructors, properties by access group, methods by access group, and
+  nested types. Sort names alphabetically within each group. Follow the surrounding type for
+  explicit interface implementations and members outside these groups.
+- Preserve initialization dependencies when arranging fields. Keep constructor assignments and executable
+  statements in their original order during formatting. For example, `TimerHistorySession.StartNew` must persist the entry
+  before assigning it to `_current`, so a failed save leaves the session ready for a retry.
+- Consecutive single-line auto-properties can remain adjacent. Separate constructors, multiline
+  properties, and methods with a blank line.
 - When reviewing a user cleanup, compare the index with the working tree (`git diff`), preserve
   both versions, and distinguish formatting/member layout from semantic changes and unrelated
   configuration edits. Do not treat every unstaged change as a formatting rule.
 
 #### Formatter integration and cleanup
 
-Keep supported settings aligned in `Recipes.sln.DotSettings` and `.editorconfig` (EditorConfig can
-override solution settings). Keep control-flow bodies on a separate line, with braces only as required
-by the conventions above; preserve at most one blank line in executable code, and remove blank lines at block edges.
+After formatting, check control-flow bodies and braces against the conventions above.
+Keep at most one blank line between executable groups and remove blank lines at block edges.
 Variable-based grouping and the ordered exceptions require a separate review after formatter cleanup; settings alone do
 not enforce them. Keep whitespace trimming and final-newline insertion enabled.
 
-Behavior-preserving cleanup may use intention-revealing assertions such as `Assert.Contains` and
-`Assert.IsGreaterThan`, readable property patterns, and suitable constant-pattern `[GeneratedRegex]`
+Behavior-preserving cleanup may use intention-revealing assertions such as `StringAssert.Contains` and
+`CollectionAssert.Contains`, readable property patterns, and suitable constant-pattern `[GeneratedRegex]`
 methods with descriptive names and required partial declarations. These are code changes, not formatting:
 preserve assertion argument order and regex semantics and verify them with appropriate tests.
 Do not use formatting rules as permission for unrelated refactoring or altering unrelated user-staged code.
