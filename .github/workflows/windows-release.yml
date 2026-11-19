@@ -1,0 +1,52 @@
+name: Publish Windows release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build self-contained Windows x64 app
+        run: >
+          dotnet publish Timer.Desktop/Timer.Desktop.csproj -c Release -r win-x64
+          --self-contained true -p:DebugType=None -p:DebugSymbols=false
+          -p:Version=$($env:GITHUB_REF_NAME.Substring(1)) -o publish
+
+      - name: Package and launch the extracted app
+        run: |
+          Compress-Archive -Path publish/* -DestinationPath Stilltime-win-x64.zip
+          Expand-Archive Stilltime-win-x64.zip -DestinationPath extracted
+          $folder = (Resolve-Path extracted).Path
+          $app = Start-Process "$folder/Timer.Desktop.exe" -WorkingDirectory $folder -PassThru
+          try {
+            $deadline = [DateTime]::UtcNow.AddSeconds(60)
+            do {
+              Start-Sleep -Milliseconds 500
+              $app.Refresh()
+              if ($app.HasExited) { throw "Stilltime exited during startup." }
+            } until ($app.MainWindowTitle -like 'Stilltime*' -or [DateTime]::UtcNow -ge $deadline)
+            if ($app.MainWindowTitle -notlike 'Stilltime*') { throw "Stilltime did not open its window." }
+            $runtime = $app.Modules | Where-Object ModuleName -eq 'coreclr.dll'
+            if ($runtime.FileName -ne "$folder\coreclr.dll") { throw "Expected the packaged .NET runtime." }
+          } finally {
+            if (!$app.HasExited) {
+              $null = $app.CloseMainWindow()
+              if (!$app.WaitForExit(5000)) { $app.Kill() }
+            }
+          }
+
+      - name: Publish verified ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME Stilltime-win-x64.zip --verify-tag --title "Stilltime $env:GITHUB_REF_NAME" --notes "Download Stilltime-win-x64.zip, extract the entire archive, and open Timer.Desktop.exe. The Windows x64 build includes the .NET runtime."

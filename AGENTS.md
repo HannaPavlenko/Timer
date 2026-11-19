@@ -121,6 +121,8 @@
 
 ## Проверки и инструменты
 
+- При отправке тега версии вида `v1.0.0` workflow `Publish Windows release` собирает автономный ZIP для Windows x64, запускает приложение из распакованного архива и публикует ZIP в GitHub Releases.
+
 - При push и pull request GitHub Actions запускает две задачи на отдельных машинах: `windows` собирает desktop и запускает оба тестовых проекта в Release, `android` восстанавливает workload и собирает Android-проект в Debug.
 
 ```powershell
