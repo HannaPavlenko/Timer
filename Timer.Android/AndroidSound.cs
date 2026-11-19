@@ -18,19 +18,29 @@ internal static class AndroidSound
         try
         {
             await File.WriteAllBytesAsync(path, TimerSoundAudio.CreateWave(sound)).ConfigureAwait(false);
-            using MediaPlayer player = new MediaPlayer();
-            TaskCompletionSource completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            player.Completion += (_, _) => completed.TrySetResult();
-            player.Error += (_, args) =>
-            {
-                args.Handled = true;
-                completed.TrySetException(new InvalidOperationException("Android audio playback failed."));
-            };
 
-            player.SetDataSource(path);
-            player.Prepare();
-            player.Start();
-            await completed.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            using MediaPlayer player = new MediaPlayer();
+            try
+            {
+                TaskCompletionSource completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                player.Completion += (_, _) => completed.TrySetResult();
+
+                player.Error += (_, args) =>
+                {
+                    args.Handled = true;
+                    completed.TrySetException(new InvalidOperationException("Android audio playback failed."));
+                };
+
+                player.SetDataSource(path);
+                player.Prepare();
+                player.Start();
+
+                await completed.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            }
+            finally
+            {
+                player.Release();
+            }
         }
         finally
         {
