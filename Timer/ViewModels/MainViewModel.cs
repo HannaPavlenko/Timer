@@ -348,6 +348,12 @@ public partial class MainViewModel : ViewModelBase
 
     public void SuspendUpdates() => _refreshTimer.Stop();
 
+    internal void SaveRunningTimerOnClose()
+    {
+        if (_status == TimerStatus.Running)
+            _history.Stop(_engine.Update());
+    }
+
     public void ResumeUpdates()
     {
         if (_status != TimerStatus.Running)

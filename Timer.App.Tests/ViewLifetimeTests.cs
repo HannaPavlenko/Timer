@@ -8,9 +8,9 @@ using Timer.Views;
 
 namespace Timer.App.Tests;
 
-/// <summary>Checks timer continuity between Android activity views in the same application.</summary>
+/// <summary>Checks timer history across desktop window and Android activity lifetimes.</summary>
 [TestClass]
-public sealed class ActivityRecreationTests
+public sealed class ViewLifetimeTests
 {
     /// <summary>Creates the isolated UI environment used by the headless test session.</summary>
     public static AppBuilder BuildAvaloniaApp() =>
@@ -20,8 +20,46 @@ public sealed class ActivityRecreationTests
     [TestMethod]
     public async Task RecreatedActivityContinuesRunningTimerWithSameHistoryId()
     {
-        await using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ActivityRecreationTests));
+        await using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ViewLifetimeTests));
         await session.Dispatch(CheckRecreatedView, CancellationToken.None);
+    }
+
+    /// <summary>Closing the desktop window saves the elapsed time since the last refresh to the same record.</summary>
+    [TestMethod]
+    public async Task ClosingWindowPreservesElapsedTimeAndHistoryIdOnReopen()
+    {
+        await using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ViewLifetimeTests));
+        await session.Dispatch(CheckClosedWindow, CancellationToken.None);
+    }
+
+    private static void CheckClosedWindow()
+    {
+        using TempHistory history = new();
+        ManualClock clock = new();
+        MainViewModel initial = new(history.Store, timeProvider: clock);
+        MainWindow window = new() {DataContext = initial};
+        window.Show();
+
+        Guid id;
+        try
+        {
+            initial.StartOrPauseCommand.Execute(null);
+            id = initial.HistoryItems.Single().Id;
+            clock.Seconds = 37;
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        TimerHistoryStore reopenedStore = new(history.FilePath);
+        MainViewModel reopened = new(reopenedStore);
+        Assert.AreEqual(id, reopened.HistoryItems.Single().Id);
+
+        TimerHistoryEntry entry = reopenedStore.Load().Single();
+        Assert.AreEqual(id, entry.Id);
+        Assert.AreEqual(TimeSpan.FromSeconds(37), entry.Elapsed);
+        Assert.AreEqual(TimerHistoryStatus.Stopped, entry.Status);
     }
 
     private static void CheckRecreatedView()
@@ -83,8 +121,9 @@ public sealed class ActivityRecreationTests
     {
         private readonly string _directory = Directory.CreateTempSubdirectory("Stilltime-").FullName;
 
-        public TempHistory() => Store = new TimerHistoryStore(Path.Combine(_directory, "history.json"));
+        public TempHistory() => Store = new TimerHistoryStore(FilePath);
 
+        public string FilePath => Path.Combine(_directory, "history.json");
         public TimerHistoryStore Store { get; }
 
         public void Dispose() => Directory.Delete(_directory, recursive: true);
