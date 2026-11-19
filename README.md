@@ -14,7 +14,11 @@ These images were rendered from the real Avalonia view with the headless Skia re
 
 ## Run on Windows
 
-Install the .NET 10 SDK and run this command from the repository root.
+[Download Stilltime for Windows x64 (ZIP)](https://github.com/HannaPavlenko/Timer/releases/download/v1.0.0/Stilltime-win-x64.zip)
+
+Extract the entire ZIP and open `Timer.Desktop.exe`. The ZIP includes the .NET runtime.
+
+To run from source, install the .NET 10 SDK and run this command from the repository root.
 
 ```powershell
 dotnet run --project Timer.Desktop
