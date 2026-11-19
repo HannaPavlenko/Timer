@@ -65,6 +65,42 @@ public sealed class ViewLifetimeTests
         Assert.AreEqual(TimerHistoryStatus.Stopped, entry.Status);
     }
 
+    /// <summary>Countdown hides progress for a zero target both on entry and after stopping the timer.</summary>
+    [TestMethod]
+    public async Task CountdownHidesProgressForZeroTargetOnEntryAndAfterStop()
+    {
+        await using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ViewLifetimeTests));
+        await session.Dispatch(CheckCountdownProgress, CancellationToken.None);
+    }
+
+    private static void CheckCountdownProgress()
+    {
+        using TempHistory history = new();
+        MainViewModel model = new(history.Store, timeProvider: new ManualClock());
+        MainWindow window = new() {DataContext = model};
+        window.Show();
+
+        try
+        {
+            model.SelectCountdownCommand.Execute(null);
+            ProgressBar progress = window.GetVisualDescendants().OfType<ProgressBar>().Single();
+            Assert.AreEqual(("0", "0"), (model.DurationMinutes, model.DurationSeconds));
+            Assert.IsFalse(progress.IsEffectivelyVisible);
+
+            model.DurationSeconds = "7";
+            model.StartOrPauseCommand.Execute(null);
+            Assert.IsTrue(progress.IsEffectivelyVisible);
+
+            model.HistoryItems.Single().StopCommand.Execute(null);
+            Assert.AreEqual(("0", "0"), (model.DurationMinutes, model.DurationSeconds));
+            Assert.IsFalse(progress.IsEffectivelyVisible);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     /// <summary>Focusing cleared target fields preserves a finished count until a new goal is entered.</summary>
     [TestMethod]
     public async Task FinishedCountUpSurvivesFocusAndStartsWithNewTarget()

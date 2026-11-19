@@ -424,6 +424,7 @@ public partial class MainViewModel : ViewModelBase
             PhaseLabel = "SET YOUR TIME";
             DetailLabel = "Check the values below.";
             PrimaryActionLabel = "Start";
+            HasProgress = false;
             ProgressPercent = 0;
         }
     }
