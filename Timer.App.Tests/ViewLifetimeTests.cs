@@ -1,7 +1,10 @@
 ﻿using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia.VisualTree;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Timer.Controls;
 using Timer.Core;
 using Timer.ViewModels;
 using Timer.Views;
@@ -60,6 +63,62 @@ public sealed class ViewLifetimeTests
         Assert.AreEqual(id, entry.Id);
         Assert.AreEqual(TimeSpan.FromSeconds(37), entry.Elapsed);
         Assert.AreEqual(TimerHistoryStatus.Stopped, entry.Status);
+    }
+
+    /// <summary>Focusing cleared target fields preserves a finished count until a new goal is entered.</summary>
+    [TestMethod]
+    public async Task FinishedCountUpSurvivesFocusAndStartsWithNewTarget()
+    {
+        await using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ViewLifetimeTests));
+        await session.Dispatch(CheckFinishedCountUp, CancellationToken.None);
+    }
+
+    private static void CheckFinishedCountUp()
+    {
+        using TempHistory history = new();
+        ManualClock clock = new();
+        MainViewModel model = new(history.Store, timeProvider: clock);
+        MainWindow window = new() {DataContext = model};
+        window.Show();
+
+        try
+        {
+            model.SelectCountUpCommand.Execute(null);
+            model.DurationMinutes = "0";
+            model.DurationSeconds = "6";
+            model.StartOrPauseCommand.Execute(null);
+            clock.Seconds = 6;
+            model.ResumeUpdates();
+
+            TimerHistoryEntry completed = history.Store.Load().Single();
+            Assert.AreEqual(TimerHistoryStatus.Completed, completed.Status);
+            var fields = window.GetVisualDescendants().OfType<DigitsOnlyTextBox>()
+                .ToDictionary(field => AutomationProperties.GetName(field)!);
+
+            Assert.IsTrue(fields["Target time, minutes"].Focus());
+            Assert.AreEqual(string.Empty, model.DurationMinutes);
+            Assert.AreEqual("FINISHED", model.StatusLabel);
+            Assert.AreEqual("00:06", model.DisplayTime);
+            Assert.IsTrue(fields["Target time, seconds"].Focus());
+            Assert.AreEqual("FINISHED", model.StatusLabel);
+            Assert.AreEqual("00:06", model.DisplayTime);
+
+            window.KeyTextInput("9");
+            model.StartOrPauseCommand.Execute(null);
+            Assert.AreEqual("RUNNING", model.StatusLabel);
+            Assert.AreEqual("00:00", model.DisplayTime);
+
+            var entries = history.Store.Load();
+            Assert.AreEqual(2, entries.Count);
+            Assert.AreEqual(completed, entries.Single(entry => entry.Id == completed.Id));
+            TimerHistoryEntry running = entries.Single(entry => entry.Id != completed.Id);
+            Assert.AreEqual(TimerHistoryStatus.Running, running.Status);
+            Assert.AreEqual(TimeSpan.FromSeconds(9), running.Target);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     private static void CheckRecreatedView()

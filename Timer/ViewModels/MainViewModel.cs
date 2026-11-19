@@ -304,9 +304,7 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
-        if (_status == TimerStatus.Completed && IsDurationMode &&
-            DurationMinutes == "0" && DurationSeconds == "0" &&
-            _engine.Update().Target is { } completedTarget)
+        if (HasClearedCompletedTarget && _engine.Update().Target is { } completedTarget)
             (DurationMinutes, DurationSeconds) = HistoryDurationFields(completedTarget);
 
         if (_status != TimerStatus.Paused && !TryConfigure())
@@ -405,9 +403,13 @@ public partial class MainViewModel : ViewModelBase
         ReloadHistory();
     }
 
+    private bool HasClearedCompletedTarget =>
+        _status == TimerStatus.Completed && IsDurationMode &&
+        TryDuration(DurationMinutes, DurationSeconds, out TimeSpan target, allowZero: true) && target == TimeSpan.Zero;
+
     private void RefreshReadyPreview()
     {
-        if (!_clearingTimeInputs && _status is (TimerStatus.Ready or TimerStatus.Completed))
+        if (!_clearingTimeInputs && _status is (TimerStatus.Ready or TimerStatus.Completed) && !HasClearedCompletedTarget)
             PrepareMode();
     }
 
