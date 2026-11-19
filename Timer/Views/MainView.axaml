@@ -188,16 +188,18 @@
             </StackPanel>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
-                <TextBlock Classes="muted" Text="Minutes" />
+                <TextBlock x:Name="TargetMinutesLabel" Classes="muted" Text="Minutes" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" IsReadOnly="{Binding !CanEditSettings}" Text="{Binding DurationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Target time, minutes"
+                         AutomationProperties.LabeledBy="{Binding #TargetMinutesLabel}"
                          AutomationProperties.HelpText="Enter 0 to 999 minutes."
                          MaxLength="3" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
-                <TextBlock Classes="muted" Text="Seconds" />
+                <TextBlock x:Name="TargetSecondsLabel" Classes="muted" Text="Seconds" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" IsReadOnly="{Binding !CanEditSettings}" Text="{Binding DurationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Target time, seconds"
+                         AutomationProperties.LabeledBy="{Binding #TargetSecondsLabel}"
                          AutomationProperties.HelpText="Enter 0 to 59 seconds."
                          MaxLength="2" />
               </StackPanel>
@@ -211,56 +213,63 @@
           <StackPanel Spacing="16">
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
-                <TextBlock Classes="muted" Text="Prepare · min" />
+                <TextBlock x:Name="PrepareMinutesLabel" Classes="muted" Text="Prepare · min" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding PreparationMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Prepare time, minutes"
+                         AutomationProperties.LabeledBy="{Binding #PrepareMinutesLabel}"
                          AutomationProperties.HelpText="Enter 0 to 999 minutes. Set both Prepare fields to zero to skip preparation."
                          MaxLength="3" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
-                <TextBlock Classes="muted" Text="Prepare · sec" />
+                <TextBlock x:Name="PrepareSecondsLabel" Classes="muted" Text="Prepare · sec" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding PreparationSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Prepare time, seconds"
+                         AutomationProperties.LabeledBy="{Binding #PrepareSecondsLabel}"
                          AutomationProperties.HelpText="Enter 0 to 59 seconds. Set both Prepare fields to zero to skip preparation."
                          MaxLength="2" />
               </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
-                <TextBlock Classes="muted" Text="Work · min" />
+                <TextBlock x:Name="WorkMinutesLabel" Classes="muted" Text="Work · min" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding WorkMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Work time, minutes"
+                         AutomationProperties.LabeledBy="{Binding #WorkMinutesLabel}"
                          AutomationProperties.HelpText="Enter 0 to 999 minutes."
                          MaxLength="3" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
-                <TextBlock Classes="muted" Text="Work · sec" />
+                <TextBlock x:Name="WorkSecondsLabel" Classes="muted" Text="Work · sec" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding WorkSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Work time, seconds"
+                         AutomationProperties.LabeledBy="{Binding #WorkSecondsLabel}"
                          AutomationProperties.HelpText="Enter 0 to 59 seconds."
                          MaxLength="2" />
               </StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,12,*">
               <StackPanel Grid.Column="0" Spacing="6">
-                <TextBlock Classes="muted" Text="Rest · min" />
+                <TextBlock x:Name="RestMinutesLabel" Classes="muted" Text="Rest · min" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding RestMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Rest time, minutes"
+                         AutomationProperties.LabeledBy="{Binding #RestMinutesLabel}"
                          AutomationProperties.HelpText="Enter 0 to 999 minutes."
                          MaxLength="3" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="6">
-                <TextBlock Classes="muted" Text="Rest · sec" />
+                <TextBlock x:Name="RestSecondsLabel" Classes="muted" Text="Rest · sec" />
                 <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding RestSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="Rest time, seconds"
+                         AutomationProperties.LabeledBy="{Binding #RestSecondsLabel}"
                          AutomationProperties.HelpText="Enter 0 to 59 seconds."
                          MaxLength="2" />
               </StackPanel>
             </Grid>
             <StackPanel Spacing="6">
-              <TextBlock Classes="muted" Text="Rounds" />
+              <TextBlock x:Name="RoundsLabel" Classes="muted" Text="Rounds" />
               <controls:DigitsOnlyTextBox Classes="timeInput" Text="{Binding Rounds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                        AutomationProperties.Name="Interval rounds"
+                       AutomationProperties.LabeledBy="{Binding #RoundsLabel}"
                        AutomationProperties.HelpText="Enter 1 to 99 rounds."
                        MaxLength="2" PlaceholderText="1" />
             </StackPanel>
