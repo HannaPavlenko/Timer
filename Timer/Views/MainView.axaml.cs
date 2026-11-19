@@ -39,6 +39,9 @@ public partial class MainView : UserControl
         }
     }
 
+    internal static Func<MainView> CreateActivityViewFactory(MainViewModel viewModel) =>
+        () => new MainView {DataContext = viewModel};
+
     private void InputPaneChanged(object? sender, InputPaneStateEventArgs args) =>
         Dispatcher.UIThread.Post(UpdateKeyboardLayout, DispatcherPriority.Loaded);
 
