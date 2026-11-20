@@ -2,7 +2,7 @@
 
 <img src="Timer.Android/Icon.png" width="88" alt="Stilltime clock icon">
 
-Stilltime is a timer for Windows and Android, built as an Avalonia UI portfolio project. It has a quiet English interface in warm neutral colors and one shared timing engine for both platforms.
+Stilltime is a timer for Windows and Android, built as an Avalonia UI portfolio project.
 
 ## Preview
 
