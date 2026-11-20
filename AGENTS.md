@@ -125,7 +125,7 @@
 - При отправке тега версии вида `v1.0.0` workflow `Publish Windows release` собирает автономный ZIP для Windows x64, запускает приложение из распакованного архива и публикует ZIP в GitHub Releases.
 
 - При push и pull request GitHub Actions запускает две задачи на отдельных машинах: `windows` собирает desktop и запускает оба тестовых проекта в Release, `android` восстанавливает workload и собирает Android-проект в Debug.
-- Workflow `Publish Stilltime web app` публикует содержимое `Timer.Browser/bin/Release/net10.0-browser/publish/wwwroot` на GitHub Pages. Источник Pages — GitHub Actions. Все ресурсы веб-оболочки должны работать по относительным путям, так как сайт открывается в каталоге репозитория `/Timer/`.
+- Workflow `Publish Stilltime web app` фиксирует SDK на ветке .NET 10, устанавливает `wasm-tools` для линковки SkiaSharp и публикует содержимое `Timer.Browser/bin/Release/net10.0-browser/publish/wwwroot` на GitHub Pages. Источник Pages — GitHub Actions. Все ресурсы веб-оболочки должны работать по относительным путям, так как сайт открывается в каталоге репозитория `/Timer/`.
 
 ```powershell
 dotnet restore Timer.sln

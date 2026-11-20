@@ -36,7 +36,7 @@ The web version stores history and sound settings on the device. Keep Stilltime 
 To run from source with the .NET 10 SDK:
 
 ```powershell
-dotnet workload restore Timer.Browser/Timer.Browser.csproj
+dotnet workload install wasm-tools
 dotnet run --project Timer.Browser
 ```
 

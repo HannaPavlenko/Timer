@@ -27,7 +27,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet workload restore Timer.Browser/Timer.Browser.csproj
+      - run: dotnet new globaljson --sdk-version 10.0.100 --roll-forward latestFeature
+      - run: dotnet workload install wasm-tools --skip-manifest-update
       - run: dotnet publish Timer.Browser/Timer.Browser.csproj -c Release
       - uses: actions/upload-pages-artifact@v3
         with:
