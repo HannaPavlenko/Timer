@@ -5,16 +5,27 @@ namespace Timer.Core;
 public sealed class TimerHistoryStore : ITimerHistoryStore
 {
     private const int MaximumEntries = 10;
-    private static readonly JsonSerializerOptions ReadOptions = new() {RespectRequiredConstructorParameters = true};
-    private readonly string _filePath;
+    private readonly Func<string?> _readJson;
+    private readonly Action<string> _writeJson;
     private readonly object _sync = new();
 
+    /// <summary>Uses the application history path unless an isolated path is supplied.</summary>
     public TimerHistoryStore(string? filePath = null)
     {
-        _filePath = filePath ?? Path.Combine(
+        string path = filePath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Stilltime",
             "history.json");
+
+        _readJson = () => StorageFile.ReadTextIfPresent(path);
+        _writeJson = json => StorageFile.WriteTextAtomically(path, "history", json);
+    }
+
+    /// <summary>Stores history through platform-provided JSON storage.</summary>
+    public TimerHistoryStore(Func<string?> readJson, Action<string> writeJson)
+    {
+        _readJson = readJson;
+        _writeJson = writeJson;
     }
 
     public IReadOnlyList<TimerHistoryEntry> Load()
@@ -59,13 +70,13 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
 
     private List<TimerHistoryEntry> ReadEntries()
     {
-        string? json = StorageFile.ReadTextIfPresent(_filePath);
+        string? json = _readJson();
         if (json is null)
             return [];
 
         try
         {
-            List<TimerHistoryEntry> entries = JsonSerializer.Deserialize<List<TimerHistoryEntry>>(json, ReadOptions)
+            List<TimerHistoryEntry> entries = JsonSerializer.Deserialize(json, StorageJsonContext.Default.ListTimerHistoryEntry)
                 ?? throw new InvalidDataException("Timer history cannot be empty JSON.");
             HashSet<Guid> ids = [];
             foreach (TimerHistoryEntry entry in entries)
@@ -97,19 +108,6 @@ public sealed class TimerHistoryStore : ITimerHistoryStore
 
     private void WriteEntries(List<TimerHistoryEntry> entries)
     {
-        string directory = Path.GetDirectoryName(Path.GetFullPath(_filePath))!;
-        Directory.CreateDirectory(directory);
-        string temporaryPath = Path.Combine(directory, $"history-{Guid.NewGuid():N}.tmp");
-
-        try
-        {
-            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(entries));
-            File.Move(temporaryPath, _filePath, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-                File.Delete(temporaryPath);
-        }
+        _writeJson(JsonSerializer.Serialize(entries, StorageJsonContext.Default.ListTimerHistoryEntry));
     }
 }

@@ -63,6 +63,13 @@ public partial class MainViewModel : ViewModelBase
             string affected = _historyStorageUnavailable && _soundStorageUnavailable
                 ? "History and sound settings"
                 : _historyStorageUnavailable ? "History" : "Sound settings";
+
+            if (OperatingSystem.IsBrowser())
+            {
+                return $"{affected} could not be loaded or saved in browser storage. " +
+                       "Changes are kept only until the app closes.";
+            }
+
             string files = _historyStorageUnavailable && _soundStorageUnavailable
                 ? "history.json and sound.json"
                 : _historyStorageUnavailable ? "history.json" : "sound.json";

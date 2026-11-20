@@ -1,0 +1,13 @@
+{
+    "id": "./",
+    "name": "Stilltime",
+    "short_name": "Stilltime",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#F3EFE8",
+    "theme_color": "#F3EFE8",
+    "icons": [
+        { "src": "./icon.png", "sizes": "512x512", "type": "image/png" }
+    ]
+}

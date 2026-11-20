@@ -15,4 +15,22 @@ internal static class StorageFile
             return null;
         }
     }
+
+    internal static void WriteTextAtomically(string path, string name, string contents)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        Directory.CreateDirectory(directory);
+        string temporaryPath = Path.Combine(directory, $"{name}-{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            File.WriteAllText(temporaryPath, contents);
+            File.Move(temporaryPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+        }
+    }
 }

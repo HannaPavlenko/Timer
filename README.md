@@ -2,7 +2,7 @@
 
 <img src="Timer.Android/Icon.png" width="88" alt="Stilltime clock icon">
 
-Stilltime is a timer for Windows and Android, built as an Avalonia UI portfolio project.
+Stilltime is a timer for Windows, Android, and the browser, built as an Avalonia UI portfolio project.
 
 ## Preview
 
@@ -27,6 +27,21 @@ To run from source, install the .NET 10 SDK and run this command from the reposi
 dotnet run --project Timer.Desktop
 ```
 
+## Run in the browser
+
+After GitHub Pages is enabled, open [Stilltime Web](https://hannapavlenko.github.io/Timer/).
+On iPhone, open the link in Safari, choose **Share → Add to Home Screen**, and enable **Open as Web App** if offered.
+The web version stores history and sound settings on the device. Keep Stilltime visible if you rely on phase cues, because iOS can suspend a background web app.
+
+To run from source with the .NET 10 SDK:
+
+```powershell
+dotnet workload restore Timer.Browser/Timer.Browser.csproj
+dotnet run --project Timer.Browser
+```
+
+The **Publish Stilltime web app** workflow deploys the Release build to GitHub Pages. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**, then run the workflow if it has not deployed yet.
+
 ## Engineering examples
 
 - **Timing across skipped refreshes.** The engine uses monotonic timestamps from `TimeProvider` to find the current interval phase, even when the UI misses a phase transition. [Timer engine](Timer.Core/TimerEngine.cs) · [Skipped-refresh test](Timer.Core.Tests/TimerEngineTests.cs#L66)
@@ -44,7 +59,7 @@ dotnet run --project Timer.Desktop
 
 All modes support start, pause, resume, and reset. The duration fields accept up to 999 minutes and 59 seconds, and intervals support 1–99 rounds. Preparation runs before work in every round; set it to 0:00 to skip it.
 
-The Sound checkbox enables a short beep when Count up or Countdown finishes. In Intervals, Prepare starts with one beep, Work with two, Rest with three, and the session ends with a gong. It is off by default and saved across app restarts. Playback is supported on Windows and Android and uses the device volume. Starting or restarting Intervals plays the first phase cue; Pause, Resume, Reset, and Stop do not repeat it.
+The Sound checkbox enables a short beep when Count up or Countdown finishes. In Intervals, Prepare starts with one beep, Work with two, Rest with three, and the session ends with a gong. It is off by default and saved across app restarts. Playback uses the device volume. Starting or restarting Intervals plays the first phase cue; Pause, Resume, Reset, and Stop do not repeat it.
 
 ## Run on Android
 

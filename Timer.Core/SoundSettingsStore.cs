@@ -2,28 +2,39 @@
 
 namespace Timer.Core;
 
-/// <summary>Stores the sound preference in a local JSON file.</summary>
+/// <summary>Stores the sound preference as JSON.</summary>
 public sealed class SoundSettingsStore : ISoundSettingsStore
 {
-    private readonly string _filePath;
+    private readonly Func<string?> _readJson;
+    private readonly Action<string> _writeJson;
 
     /// <summary>Uses the application settings path unless an isolated path is supplied.</summary>
     public SoundSettingsStore(string? filePath = null)
     {
-        _filePath = filePath ?? Path.Combine(
+        string path = filePath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Stilltime", "sound.json");
+
+        _readJson = () => StorageFile.ReadTextIfPresent(path);
+        _writeJson = json => StorageFile.WriteTextAtomically(path, "sound", json);
+    }
+
+    /// <summary>Stores sound settings through platform-provided JSON storage.</summary>
+    public SoundSettingsStore(Func<string?> readJson, Action<string> writeJson)
+    {
+        _readJson = readJson;
+        _writeJson = writeJson;
     }
 
     /// <inheritdoc />
     public bool Load()
     {
-        string? json = StorageFile.ReadTextIfPresent(_filePath);
+        string? json = _readJson();
         if (json is null)
             return false;
 
         try
         {
-            return JsonSerializer.Deserialize<bool>(json);
+            return JsonSerializer.Deserialize(json, StorageJsonContext.Default.Boolean);
         }
         catch (JsonException exception)
         {
@@ -34,19 +45,6 @@ public sealed class SoundSettingsStore : ISoundSettingsStore
     /// <inheritdoc />
     public void Save(bool enabled)
     {
-        string directory = Path.GetDirectoryName(Path.GetFullPath(_filePath))!;
-        Directory.CreateDirectory(directory);
-
-        string temporaryPath = Path.Combine(directory, $"sound-{Guid.NewGuid():N}.tmp");
-        try
-        {
-            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(enabled));
-            File.Move(temporaryPath, _filePath, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-                File.Delete(temporaryPath);
-        }
+        _writeJson(JsonSerializer.Serialize(enabled, StorageJsonContext.Default.Boolean));
     }
 }

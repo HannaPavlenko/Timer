@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Timer.Core;
@@ -11,6 +12,9 @@ public partial class App : Application
 {
     /// <summary>Platform audio configured by the host before Avalonia creates any views.</summary>
     public static SoundPlayback? SoundPlayback { get; set; }
+
+    /// <summary>Provides platform storage when the default app data files are unavailable.</summary>
+    public static Func<MainViewModel>? ViewModelFactory { get; set; }
 
     public override void Initialize()
     {
@@ -43,7 +47,7 @@ public partial class App : Application
 
     private static MainViewModel CreateViewModel()
     {
-        MainViewModel viewModel = new MainViewModel();
+        MainViewModel viewModel = ViewModelFactory?.Invoke() ?? new MainViewModel();
         viewModel.SoundRequested += async (_, args) =>
         {
             if (SoundPlayback is { } playback)

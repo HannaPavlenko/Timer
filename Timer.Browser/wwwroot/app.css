@@ -1,0 +1,30 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #F3EFE8;
+    color: #292D28;
+    font: 1rem system-ui, sans-serif;
+}
+
+#out {
+    position: fixed;
+    inset: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.avalonia-splash {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    margin: 0;
+    place-items: center;
+    background: #F3EFE8;
+}
+
+.avalonia-splash.splash-close {
+    display: none;
+}
